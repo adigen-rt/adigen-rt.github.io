@@ -225,15 +225,6 @@ window.MathJax = {
 
 <main>
 
-  <figure class="wide" style="gap:.9rem">
-    <div class="domains">
-      <figure><img src="static/img/domains/robotics.jpg" width="1200" height="800" alt="A laboratory robot arm handling an assay plate."><figcaption><b>Robotics</b>Teleoperators attempt the grasps they trust, so demonstrations cover only the approaches that looked safe.</figcaption></figure>
-      <figure><img src="static/img/domains/driving.jpg" width="1200" height="800" alt="A Waymo self-driving car on a city street."><figcaption><b>Driving</b>Fleet drivers brake before danger materializes, so the logs barely contain the maneuvers that matter most.</figcaption></figure>
-      <figure><img src="static/img/domains/medicine.jpg" width="1200" height="800" alt="An intensive care bed surrounded by infusion pumps."><figcaption><b>Medicine</b>Clinicians dose by how sick the patient already is, so treatment and prognosis are entangled in every record.</figcaption></figure>
-    </div>
-    <figcaption class="col"><b>Figure 1: The data was never an experiment.</b> World models for decision-making are trained on logs produced by rational actors — operators, drivers, clinicians — and their good judgment is exactly what biases the data: actions are correlated with hidden context, and the actions most worth evaluating are the ones they avoided.</figcaption>
-  </figure>
-
   <section class="col">
     <div class="answer">
       <h2>The Answer: <em>not by default.</em></h2>
@@ -264,7 +255,7 @@ window.MathJax = {
       <li><a href="#method">Policy learning with retargeted counterfactual generation</a></li>
       <li><a href="#theory">Why retargeting helps</a></li>
       <li><a href="#cells">Cell Painting (RxRx19a)</a></li>
-      <li><a href="#video">Video world model (PhyWorld)</a>
+      <li><a href="#video">Video generation (PhyWorld)</a>
         <ol>
           <li><a href="#video-ood">Out-of-distribution decisions</a></li>
           <li><a href="#video-results">Results across overlap and dimension</a></li>
@@ -273,19 +264,27 @@ window.MathJax = {
     </ol>
   </nav>
 
-  <section id="motivation" class="col">
-    <h2 class="sec"><span class="n">1</span>The problem: logs come from rational actors</h2>
-    <p>World models promise decision-making from logged experience alone: train a generator of <i>what happens if</i> on the data a system already collects, then plan against it. The catch is that logs are derived from rational actors. Nobody logged at random — the safety driver braked when it was wise, the teleoperator reached for the grasp that looked safe, the clinician dosed the patient who needed it. That rationality, not noise or malice, biases the data in exactly the two ways that hurt decisions.</p>
-    <figure>
+  <section id="motivation" class="wide">
+    <div class="col"><h2 class="sec"><span class="n">1</span>The problem: logs come from rational actors</h2></div>
+    <p class="col">Counterfactual generators promise decisions from logged experience: train on what a system already records, then plan against it. But nobody logged at random — the driver braked when it was wise, the operator reached for the safe grasp, the clinician dosed the sickest patient. That rationality, not noise, biases the data in the two ways that hurt decisions.</p>
+    <figure class="wide" style="gap:.9rem">
+      <div class="domains">
+        <figure><img src="static/img/domains/robotics.jpg" width="1200" height="800" alt="A laboratory robot arm handling an assay plate."><figcaption><b>Robotics</b>Demonstrations cover only the grasps the operator trusted.</figcaption></figure>
+        <figure><img src="static/img/domains/driving.jpg" width="1200" height="800" alt="A Waymo self-driving car on a city street."><figcaption><b>Driving</b>Fleet logs brake before danger ever materializes.</figcaption></figure>
+        <figure><img src="static/img/domains/medicine.jpg" width="1200" height="800" alt="An intensive care bed surrounded by infusion pumps."><figcaption><b>Medicine</b>Dose tracks how sick the patient already is.</figcaption></figure>
+      </div>
+      <figcaption class="col"><b>Figure 1: The data was never an experiment.</b> Logs come from rational actors, and their good judgment is what biases the data.</figcaption>
+    </figure>
+    <figure class="col">
       <!-- TODO: swap for the problem illustration the user will describe (static/img/fig_problem.png) -->
       <div class="placeholder" style="min-height:11rem">Problem illustration placeholder<br>(descriptive image to come; will live at static/img/fig_problem.png)</div>
     </figure>
-    <ul class="fixes">
-      <li><b>Confounding: actions are correlated with hidden context.</b> A fleet's drivers brake hard mostly when something is already going wrong, so a conditional model concludes that hard braking goes with crashes. A teleoperator attempts a fast grasp only when the bin is tidy. In our physics logs, strong pushes co-occur with strong gusts. Conditioning on the action learns the logger's habits, not the action's effect.</li>
-      <li><b>Vanishing coverage: the interesting actions are the rare ones.</b> Evasive steering at speed, aggressive approach angles, high doses of a promising compound — the actions a planner most needs to evaluate are the ones the logger avoided. In our benchmarks they appear in as little as \(\eta = 0.002\) of the logs.</li>
+    <ul class="fixes col">
+      <li><b>Confounding: actions correlate with hidden context.</b> Conditioning on the action learns the logger's habits, not the action's effect — braking "goes with" crashes; in our physics logs, strong pushes come with strong gusts.</li>
+      <li><b>Vanishing coverage: the interesting actions are the rare ones.</b> Evasive steering, aggressive grasps, high doses — what a planner most needs to evaluate is what the logger avoided (as little as \(\eta = 0.002\) of our logs).</li>
     </ul>
-    <p>Planning turns these flaws from noise into bias: the optimizer ranks actions by the generator's imagination and takes the argmax, so it actively seeks the sparsely-covered region where the generator is confidently optimistic. A model that looks accurate on held-out logs can still be a bad decision-maker — Figure 6 shows it happening — and global error metrics never see it, because they average under the same logging distribution.</p>
-    <figure>
+    <p class="col">Planning turns these flaws into bias: the optimizer takes the argmax over the generator's imagination, so it seeks exactly the thinly-covered region where the generator is confidently optimistic (Figure 6). Global metrics, averaged under the logging distribution, never see it.</p>
+    <figure class="col">
       <!-- TODO: swap the placeholder for the provided two-step figure at static/img/fig_two_steps.png (keep the width/height attributes in sync) -->
       <div class="placeholder">Figure 2 placeholder — the two-step fix diagram<br>(image to be provided; will live at static/img/fig_two_steps.png)</div>
       <figcaption><b>Figure 2: The fix, in two steps.</b> <b>Step 1 — debias:</b> train the generator with a doubly robust loss and an invariance penalty (ADIGen), so its errors stop tracking the logger's habits. <b>Step 2 — retarget:</b> learn a pilot policy from the debiased generator, then retrain the generator aimed at that policy and relearn (ADIGen-PO), so its remaining error budget is spent where the decision will actually be made.</figcaption>
@@ -294,7 +293,7 @@ window.MathJax = {
 
   <section id="method" class="col">
     <h2 class="sec"><span class="n">2</span>Policy Learning with Retargeted Counterfactual Generation</h2>
-    <p>Counterfactual generators, from physical world models to virtual cells, are increasingly used to choose interventions: simulate rollouts under candidate actions, then pick the best. We address three problems with this, one per step.</p>
+    <p>Counterfactual generators, from physics video to virtual cells, are increasingly used to choose interventions: simulate rollouts under candidate actions, then pick the best. We address three problems with this, one per step.</p>
     <ul class="fixes">
       <li><b>Biased logs → doubly robust loss.</b> ADIGen (<b>A</b>utomatic, <b>D</b>ebiased, <b>I</b>nvariant <b>Gen</b>eration) reweights with a <i>universal Riesz representer</i> learned by Riesz regression, so no density ratio is inverted, even for high-dimensional joint interventions.</li>
       <li><b>Shifting environments → invariance penalty</b> on learned representations \(S(\bX), T(\bA)\).</li>
@@ -346,12 +345,12 @@ window.MathJax = {
     </figure>
     <figure class="wide">
       <div class="plate"><img src="static/img/fig_cells_rho_wide.png" width="2640" height="660" loading="lazy" alt="Four panels against overlap for RxRx19a: regret, generator RMSE, peak recovery and regret reduction from retargeting, with bootstrap bands."></div>
-      <figcaption class="col"><b>Figure 5: RxRx19a across overlap η.</b> The sweep above summarized. Panels: regret; generator RMSE globally (solid) and at \(\pi^\star\) (dotted); peak recovery (predicted / true rescue height); regret reduction from retargeting. Retargeting helps most in the sparse-log regime (\(\eta \le 0.5\)) and costs nothing once the logs cover the high-dose band. Shading: 95% evaluation-noise bands.</figcaption>
+      <figcaption class="col"><b>Figure 5: RxRx19a across overlap η.</b> The sweep above summarized. Panels: regret; generator RMSE globally (solid) and at \(\pi^\star\) (dotted); peak recovery (predicted / true rescue height); regret reduction from retargeting. Retargeting helps most in the sparse-log regime (\(\eta \le 0.5\)) and costs nothing once the logs cover the high-dose band.</figcaption>
     </figure>
   </section>
 
   <section id="video" class="wide">
-    <div class="col"><h2 class="sec"><span class="n">5</span>Video world model (PhyWorld)</h2></div>
+    <div class="col"><h2 class="sec"><span class="n">5</span>Video generation (PhyWorld)</h2></div>
     <p class="col">Outcomes are rendered videos from <a href="https://phyworld.github.io/">PhyWorld</a>, and the generator is a flow-matching DiT in VAE latent space. Each ball gets a push and a shared gust; the policy chooses a second push to land each ball on a goal. Strong gusts (\(|g| \in [0.50, 0.85]\)) lie outside the training range (\(|g| \le 0.25\)) and appear in the logs with probability \(\eta\).</p>
 
     <h3 class="col" id="video-ood">5.1 Out-of-distribution decisions</h3>
