@@ -263,7 +263,7 @@ window.MathJax = {
 
   <section id="motivation" class="wide">
     <div class="col"><h2 class="sec"><span class="n">1</span>The problem: logs come from rational actors</h2></div>
-    <p class="col">Counterfactual generators promise decisions from logged experience: train on what a system already records, then plan against it. But nobody logged at random — the driver braked when it was wise, the operator reached for the safe grasp, the clinician dosed the sickest patient. That rationality, not noise, biases the data in the two ways that hurt decisions.</p>
+    <p class="col">Counterfactual generators, from physics video to virtual cells, are increasingly used to choose interventions: simulate rollouts under candidate actions on logged experience, then pick the best. But nobody logged at random — the driver braked when it was wise, the operator reached for the safe grasp, the clinician dosed the sickest patient. That rationality, not noise, biases the data in the two ways that hurt decisions.</p>
     <figure class="wide" style="gap:.9rem">
       <div class="domains">
         <figure><img src="static/img/domains/robotics.jpg" width="1200" height="800" alt="A laboratory robot arm handling an assay plate."><figcaption><b>Robotics</b>Demonstrations cover only the grasps the operator trusted.</figcaption></figure>
@@ -281,7 +281,7 @@ window.MathJax = {
 
   <section id="method" class="col">
     <h2 class="sec"><span class="n">2</span>Policy Learning with Retargeted Counterfactual Generation</h2>
-    <p>Counterfactual generators, from physics video to virtual cells, are increasingly used to choose interventions: simulate rollouts under candidate actions, then pick the best. We address two problems with this, one per step.</p>
+    <p>We address the two problems above, one per step.</p>
     <ul class="fixes">
       <li><b>Biased logs → doubly robust loss.</b> ADIGen (<b>A</b>utomatic, <b>D</b>ebiased, <b>I</b>nvariant <b>Gen</b>eration) learns a counterfactual distribution, robustly: a <i>universal Riesz representer</i> learned by Riesz regression reweights the loss, so no density ratio is inverted, even for high-dimensional joint interventions.
         <div class="eq" style="margin-top:.6rem">
