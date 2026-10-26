@@ -124,7 +124,8 @@ h3 { font: 600 1.18rem/1.3 var(--f-display); margin: .5rem 0 0; text-wrap: balan
 .toc a { color: var(--ink); text-decoration: none; }
 .toc a:hover { color: var(--rt); text-decoration: underline; }
 
-ul.fixes { margin: 0; padding-left: 1.2rem; display: grid; gap: .5rem; }
+ul.fixes { margin: 0; padding-left: 1.4rem; padding-right: 1.4rem; display: grid; gap: .55rem; }
+ul.fixes li::marker { color: var(--rt); }
 .eq { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: .9rem 1rem; overflow-x: auto; }
 mjx-container[display="true"] { margin: .3em 0 !important; }
 .take { background: var(--rt-soft); border-radius: 10px; padding: .85rem 1rem; }
@@ -274,7 +275,7 @@ window.MathJax = {
     </figure>
     <ul class="fixes col">
       <li><b>Confounding: actions correlate with hidden context.</b> Conditioning on the action learns the logger's habits, not the action's effect — braking "goes with" crashes; in our physics logs, strong pushes come with strong gusts.</li>
-      <li><b>Vanishing coverage: improvement lives off-distribution.</b> A rational logger doesn't explore — and a policy that merely repeats the logs needs no generator, so improving on the logger means acting where it didn't. The actions a planner most needs to evaluate — evasive steering, an aggressive grasp, a high dose — are the very ones the logs barely contain (as little as \(\eta = 0.002\) of ours), and where the data is thin the generator's predictions are guesses.</li>
+      <li><b>Vanishing coverage: improvement lives off-distribution.</b> A rational logger doesn't explore, and it isn't optimal — it was sensible for its own objective and constraints, not yours. Improving on it means acting where it didn't, and those actions — evasive steering, an aggressive grasp, a high dose — are the very ones the logs barely contain (as little as \(\eta = 0.002\) of ours). Where the data is thin, the generator's predictions are guesses.</li>
     </ul>
     <p class="col">Planning can turn these flaws into bias: the optimizer ranks actions by the generator's imagination, so it tends to drift toward the thinly-covered region — and there it can fall to over-optimism, favoring actions whose outcomes the generator can only guess at (Figure 5). Global metrics, averaged under the logging distribution, won't flag it.</p>
   </section>
@@ -291,7 +292,7 @@ window.MathJax = {
           \]
         </div>
       </li>
-      <li><b>Generator not built for decisions → retargeting.</b> Learn a pilot policy \(\tilde\pi\), retrain the generator at \(\pi_\lambda = \lambda\tilde\pi + (1-\lambda)\pi_b\), and relearn the policy. This trades the worst-case transfer factor for an average (\(\chi^2\)) weight cost, and the mixture \(\pi_\lambda\) is provably within 2× of the best possible target law (Thms. 3–4).</li>
+      <li><b>Generator not built for decisions → retargeting.</b> Learn a pilot policy \(\tilde\pi\), retrain the generator at \(\pi_\lambda = \lambda\tilde\pi + (1-\lambda)\pi_b\), and relearn the policy. Two guarantees: instead of paying for the single worst action the policy might take, the retargeted generator pays only an average (\(\chi^2\)) reweighting cost; and the choice of \(\pi_\lambda\) is nearly free — it is guaranteed to come within 2× of the best target law one could have picked (Thms. 3–4).</li>
     </ul>
     <p>Policies are KL-regularized tilts of the logger, \(\pi_\beta \propto \pi_b\, e^{\hat\mu/\beta}\), fit from generator rollouts. In round 1 ADIGen is trained at a fixed intervention law \(\nu_0\). In round 2 it is retrained at \(\nu = \pi_\lambda\), with cross-fitting across data halves.</p>
   </section>
