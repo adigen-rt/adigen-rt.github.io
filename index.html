@@ -267,6 +267,14 @@ window.MathJax = {
   <section id="motivation" class="wide">
     <div class="col"><h2 class="sec"><span class="n">1</span>The problem: logs come from rational actors</h2></div>
     <p class="col">Counterfactual generators promise decisions from logged experience: train on what a system already records, then plan against it. But nobody logged at random — the driver braked when it was wise, the operator reached for the safe grasp, the clinician dosed the sickest patient. That rationality, not noise, biases the data in the two ways that hurt decisions.</p>
+    <figure class="wide" style="gap:.9rem">
+      <div class="domains">
+        <figure><img src="static/img/domains/robotics.jpg" width="1200" height="800" alt="A laboratory robot arm handling an assay plate."><figcaption><b>Robotics</b>Demonstrations cover only the grasps the operator trusted.</figcaption></figure>
+        <figure><img src="static/img/domains/driving.jpg" width="1200" height="800" alt="A Waymo self-driving car on a city street."><figcaption><b>Driving</b>Fleet logs brake before danger ever materializes.</figcaption></figure>
+        <figure><img src="static/img/domains/medicine.jpg" width="1200" height="800" alt="An intensive care bed surrounded by infusion pumps."><figcaption><b>Medicine</b>Dose tracks how sick the patient already is.</figcaption></figure>
+      </div>
+      <figcaption class="col"><b>Figure 1: The data was never an experiment.</b> Logs come from rational actors, and their good judgment is what biases the data.</figcaption>
+    </figure>
     <figure class="col">
       <!-- TODO: swap for the problem illustration the user will describe (static/img/fig_problem.png) -->
       <div class="placeholder" style="min-height:11rem">Problem illustration placeholder<br>(descriptive image to come; will live at static/img/fig_problem.png)</div>
@@ -275,7 +283,7 @@ window.MathJax = {
       <li><b>Confounding: actions correlate with hidden context.</b> Conditioning on the action learns the logger's habits, not the action's effect — braking "goes with" crashes; in our physics logs, strong pushes come with strong gusts.</li>
       <li><b>Vanishing coverage: the interesting actions are the rare ones.</b> Evasive steering, aggressive grasps, high doses — what a planner most needs to evaluate is what the logger avoided (as little as \(\eta = 0.002\) of our logs).</li>
     </ul>
-    <p class="col">Planning turns these flaws into bias: the optimizer takes the argmax over the generator's imagination, so it seeks exactly the thinly-covered region where the generator is confidently optimistic (Figure 4). Global metrics, averaged under the logging distribution, never see it.</p>
+    <p class="col">Planning turns these flaws into bias: the optimizer takes the argmax over the generator's imagination, so it seeks exactly the thinly-covered region where the generator is confidently optimistic (Figure 5). Global metrics, averaged under the logging distribution, never see it.</p>
   </section>
 
   <section id="method" class="col">
@@ -317,7 +325,7 @@ window.MathJax = {
         <figure><img src="static/cells/rdv_high.jpg" width="512" height="512" loading="lazy" alt="Infected VERO cells with Remdesivir at 10 micromolar: dense."><figcaption><b>Remdesivir</b>10 µM</figcaption></figure>
         <figure><img src="static/cells/cq_high.jpg" width="512" height="512" loading="lazy" alt="Infected VERO cells with Chloroquine at 10 micromolar: dense."><figcaption><b>Chloroquine</b>10 µM</figcaption></figure>
       </div>
-      <figcaption class="col"><b>Figure 1: Real Cell Painting wells (VERO).</b> At high doses the three active compounds restore a dense monolayer close to mock. The biased logger thins exactly these high-dose wells. Five channels shown as RGB (nuclei, ER, actin, RNA, Golgi/membrane); central crop, first well per condition.</figcaption>
+      <figcaption class="col"><b>Figure 2: Real Cell Painting wells (VERO).</b> At high doses the three active compounds restore a dense monolayer close to mock. The biased logger thins exactly these high-dose wells. Five channels shown as RGB (nuclei, ER, actin, RNA, Golgi/membrane); central crop, first well per condition.</figcaption>
     </figure>
     <figure class="wide">
       <div class="etactl">
@@ -326,11 +334,11 @@ window.MathJax = {
         <output id="eta-out">η = 0.1</output>
       </div>
       <div class="plate"><img id="eta-img" src="static/img/dose_eta0.1.png" width="2200" height="640" loading="lazy" alt="Dose-response curves for GS-441524, Remdesivir and Chloroquine at the overlap chosen with the slider: real wells rise sharply at high dose; at low overlap the conditional and ADIGen policies stay flat while retargeted ADIGen rises toward the real peak."></div>
-      <figcaption class="col"><b>Figure 2: Dose–response as the logs thin out (drag the slider).</b> Black: real held-out wells; shaded: the ≥ 1 µM band the logger thins to a fraction \(\eta\). At \(\eta = 0.1\) the conditional and ADIGen policies (overlapping) read the response as flat and miss the rescue, while retargeted ADIGen climbs toward the real peak. As \(\eta\) rises toward 1 the logs regain coverage and the methods converge.</figcaption>
+      <figcaption class="col"><b>Figure 3: Dose–response as the logs thin out (drag the slider).</b> Black: real held-out wells; shaded: the ≥ 1 µM band the logger thins to a fraction \(\eta\). At \(\eta = 0.1\) the conditional and ADIGen policies (overlapping) read the response as flat and miss the rescue, while retargeted ADIGen climbs toward the real peak. As \(\eta\) rises toward 1 the logs regain coverage and the methods converge.</figcaption>
     </figure>
     <figure class="wide">
       <div class="plate"><img src="static/img/fig_cells_rho_wide.png" width="2640" height="660" loading="lazy" alt="Four panels against overlap for RxRx19a: regret, generator RMSE, peak recovery and regret reduction from retargeting, with bootstrap bands."></div>
-      <figcaption class="col"><b>Figure 3: RxRx19a across overlap η.</b> The sweep above summarized. Panels: regret; generator RMSE globally (solid) and at \(\pi^\star\) (dotted); peak recovery (predicted / true rescue height); regret reduction from retargeting. Retargeting helps most in the sparse-log regime (\(\eta \le 0.5\)) and costs nothing once the logs cover the high-dose band.</figcaption>
+      <figcaption class="col"><b>Figure 4: RxRx19a across overlap η.</b> The sweep above summarized. Panels: regret; generator RMSE globally (solid) and at \(\pi^\star\) (dotted); peak recovery (predicted / true rescue height); regret reduction from retargeting. Retargeting helps most in the sparse-log regime (\(\eta \le 0.5\)) and costs nothing once the logs cover the high-dose band.</figcaption>
     </figure>
   </section>
 
@@ -398,13 +406,13 @@ window.MathJax = {
           </div>
         </div>
       </div>
-      <figcaption class="col"><b>Figure 4: Every generator imagines success. Only the retargeted one achieves it.</b> Badges show the real landing miss of each method's chosen push. In every scene all three generators imagine a hit, but only ADIGen-PO's push lands. In scenes 18 and 230, debiasing alone (ADIGen) gets partway there and retargeting closes the gap. Scenes chosen for illustration; mean regret over all 256 scenes is 0.65 / 0.34 / 0.20.</figcaption>
+      <figcaption class="col"><b>Figure 5: Every generator imagines success. Only the retargeted one achieves it.</b> Badges show the real landing miss of each method's chosen push. In every scene all three generators imagine a hit, but only ADIGen-PO's push lands. In scenes 18 and 230, debiasing alone (ADIGen) gets partway there and retargeting closes the gap. Scenes chosen for illustration; mean regret over all 256 scenes is 0.65 / 0.34 / 0.20.</figcaption>
     </figure>
 
     <h3 class="col" id="video-results">5.2 Results across overlap and dimension</h3>
     <figure class="fig-big">
       <div class="plate"><img src="static/img/fig_phyworld_rho_m_30k.png" width="2080" height="2080" loading="lazy" alt="Line plots for PhyWorld: regret, model error, self-evaluation error and regret reduction against overlap and number of balls."></div>
-      <figcaption><b>Figure 5: PhyWorld at a matched training budget.</b> Left: overlap \(\eta\) (\(m = 1\)). Right: number of balls \(m\) (\(\eta = 0.005\)). At low overlap retargeting has the lowest regret, then ADIGen, then the conditional model. It also has the smallest self-evaluation error: it knows how good its own plan is.</figcaption>
+      <figcaption><b>Figure 6: PhyWorld at a matched training budget.</b> Left: overlap \(\eta\) (\(m = 1\)). Right: number of balls \(m\) (\(\eta = 0.005\)). At low overlap retargeting has the lowest regret, then ADIGen, then the conditional model. It also has the smallest self-evaluation error: it knows how good its own plan is.</figcaption>
     </figure>
 
   </section>
@@ -432,6 +440,7 @@ window.MathJax = {
 <footer class="col">
   <span>Raphael C. Kim, Jingsen Zhu, Ramin Zabih, Michele Santacatterina · 2026</span>
   <span>Page layout inspired by the <a href="https://phyworld.github.io/">PhyWorld</a> project page.</span>
+  <span>Figure 1 photos via Wikimedia Commons: <a href="https://commons.wikimedia.org/wiki/File:Robot_arm_handles_an_assay_plate.jpg">NIAID</a> (public domain), <a href="https://commons.wikimedia.org/wiki/File:Waymo_Self-Driving_Car_(54983869212).jpg">ajay_suresh</a> (CC BY 4.0), <a href="https://commons.wikimedia.org/wiki/File:20250808_Intensive_care_unit_bed.jpg">Ismael Olea</a> (CC BY 4.0).</span>
 </footer>
 
 <script>
