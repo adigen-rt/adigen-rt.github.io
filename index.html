@@ -280,17 +280,15 @@ window.MathJax = {
 
   <section id="method" class="col">
     <h2 class="sec"><span class="n">2</span>Policy Learning with Retargeted Counterfactual Generation</h2>
-    <p>Counterfactual generators, from physics video to virtual cells, are increasingly used to choose interventions: simulate rollouts under candidate actions, then pick the best. We address three problems with this, one per step.</p>
+    <p>Counterfactual generators, from physics video to virtual cells, are increasingly used to choose interventions: simulate rollouts under candidate actions, then pick the best. We address two problems with this, one per step.</p>
     <ul class="fixes">
-      <li><b>Biased logs → doubly robust loss.</b> ADIGen (<b>A</b>utomatic, <b>D</b>ebiased, <b>I</b>nvariant <b>Gen</b>eration) reweights with a <i>universal Riesz representer</i> learned by Riesz regression, so no density ratio is inverted, even for high-dimensional joint interventions.</li>
-      <li><b>Shifting environments → invariance penalty</b> on learned representations \(S(\bX), T(\bA)\).</li>
+      <li><b>Biased logs → doubly robust loss.</b> ADIGen (<b>A</b>utomatic, <b>D</b>ebiased, <b>I</b>nvariant <b>Gen</b>eration) learns a counterfactual distribution, robustly: a <i>universal Riesz representer</i> learned by Riesz regression reweights the loss, so no density ratio is inverted, even for high-dimensional joint interventions.</li>
       <li><b>Generator not built for decisions → retargeting.</b> Learn a pilot policy \(\tilde\pi\), retrain the generator at \(\pi_\lambda = \lambda\tilde\pi + (1-\lambda)\pi_b\), and relearn the policy.</li>
     </ul>
     <div class="eq">
       \[
         \underbrace{\alpha(\bA,\bX,E)\big[\ell(\theta;Y,\bA)-\zeta_\psi(\theta;\bX,\bA)\big]}_{\text{reweighted residual}}
         + \underbrace{\int \zeta_\psi(\theta;\bX,\ba)\,\nu(d\ba\mid\bX)}_{\text{plug-in over target law }\nu}
-        + \lambda_{\mathrm{inv}}\,\hat{\mathcal I}_n(\theta)
       \]
     </div>
     <p>Policies are KL-regularized tilts of the logger, \(\pi_\beta \propto \pi_b\, e^{\hat\mu/\beta}\), fit from generator rollouts. In round 1 ADIGen is trained at a fixed intervention law \(\nu_0\). In round 2 it is retrained at \(\nu = \pi_\lambda\), with cross-fitting across data halves.</p>
