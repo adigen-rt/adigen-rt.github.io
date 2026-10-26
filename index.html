@@ -274,7 +274,7 @@ window.MathJax = {
     </figure>
     <ul class="fixes col">
       <li><b>Confounding: actions correlate with hidden context.</b> Conditioning on the action learns the logger's habits, not the action's effect — braking "goes with" crashes; in our physics logs, strong pushes come with strong gusts.</li>
-      <li><b>Vanishing coverage: the interesting actions are the rare ones.</b> The actions a planner most needs to evaluate — evasive steering, an aggressive grasp, a high dose — are the ones a sensible logger rarely took, so the generator has almost nothing to learn them from (as little as \(\eta = 0.002\) of our logs). Where the data is thin, its predictions are guesses.</li>
+      <li><b>Vanishing coverage: improvement lives off-distribution.</b> A rational logger doesn't explore — and a policy that merely repeats the logs needs no generator, so improving on the logger means acting where it didn't. The actions a planner most needs to evaluate — evasive steering, an aggressive grasp, a high dose — are the very ones the logs barely contain (as little as \(\eta = 0.002\) of ours), and where the data is thin the generator's predictions are guesses.</li>
     </ul>
     <p class="col">Planning can turn these flaws into bias: the optimizer ranks actions by the generator's imagination, so it tends to drift toward the thinly-covered region — and there it can fall to over-optimism, favoring actions whose outcomes the generator can only guess at (Figure 5). Global metrics, averaged under the logging distribution, won't flag it.</p>
   </section>
