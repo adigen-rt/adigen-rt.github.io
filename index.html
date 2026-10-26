@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Are Good Generators Good Decision-Makers?</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Policy learning for general interventions via retargeted counterfactual generation (ADIGen-PO). Kim, Zhu, Zabih, Santacatterina, 2026.">
+<meta property="og:title" content="Are Good Generators Good Decision-Makers?">
+<meta property="og:description" content="Policy learning for general interventions via retargeted counterfactual generation.">
+<meta property="og:image" content="static/scenes/s106_still.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Serif:ital,wght@0,500;0,600;1,400&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: a single linear reading column in the PhyWorld project-page format (answer block, contents, numbered
+   sections, "Figure N" captions); figures sit on white plates; the paper's three method colors are the only accents. */
+:root {
+  --bg: #f6f8f6;
+  --surface: #ffffff;
+  --ink: #17211c;
+  --muted: #56645c;
+  --rule: #d9e0db;
+  --cond: #d9690b;
+  --adg: #1f6fae;
+  --rt: #23873a;
+  --rt-soft: #e3f1e5;
+  --code-bg: #eef2ef;
+  --plate: #ffffff;
+  --f-display: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --col: 46rem;
+  --wide: 62rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111613; --surface: #18201b; --ink: #e4ebe6; --muted: #9daba2; --rule: #2c3830;
+    --cond: #f4924a; --adg: #6aaee6; --rt: #5cc472; --rt-soft: #1c3322; --code-bg: #1b241e; --plate: #f4f6f4;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111613; --surface: #18201b; --ink: #e4ebe6; --muted: #9daba2; --rule: #2c3830;
+  --cond: #f4924a; --adg: #6aaee6; --rt: #5cc472; --rt-soft: #1c3322; --code-bg: #1b241e; --plate: #f4f6f4;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 1.075rem/1.65 var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--adg); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--rt); outline-offset: 3px; border-radius: 4px; }
+p { margin: 0; }
+.col { max-width: var(--col); margin-inline: auto; width: 100%; }
+.wide { max-width: var(--wide); margin-inline: auto; width: 100%; }
+
+/* header */
+header.hero { padding-block: 3.5rem 1.6rem; text-align: center; display: grid; gap: 1rem; }
+.venue { font: 500 .78rem/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+h1 { font: 600 clamp(2rem, 5.2vw, 3.2rem)/1.1 var(--f-display); margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+h1 .q { color: var(--rt); }
+.subtitle { font: italic 400 clamp(1.1rem, 2.4vw, 1.4rem)/1.35 var(--f-display); color: var(--muted); margin: 0; text-wrap: balance; }
+.authors { display: flex; flex-wrap: wrap; justify-content: center; gap: .25rem 1.4rem; font-size: 1.15rem; margin-top: .3rem; }
+.authors a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--rule); }
+.authors a:hover { border-color: var(--ink); }
+.authors sup, .affils sup { font: 500 .7em var(--f-mono); color: var(--muted); margin-left: 1px; }
+.affils { display: flex; flex-wrap: wrap; justify-content: center; gap: .2rem 1.6rem; font-size: .95rem; color: var(--muted); }
+.buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem; margin-top: .5rem; }
+.btn {
+  display: inline-flex; align-items: center; gap: .45rem; padding: .55rem 1.1rem; border-radius: 999px;
+  background: var(--ink); color: var(--bg); text-decoration: none; font: 600 .95rem/1 var(--f-body);
+  transition: background .15s ease;
+}
+.btn:hover { background: var(--rt); color: #fff; }
+.btn svg { width: 1.05em; height: 1.05em; fill: currentColor; }
+.btn.disabled { background: transparent; color: var(--muted); border: 1px dashed var(--rule); pointer-events: none; }
+
+/* figures */
+figure { margin: 0; display: grid; gap: .7rem; }
+.plate { background: var(--plate); border: 1px solid var(--rule); border-radius: 10px; padding: .75rem; }
+.plate img { margin-inline: auto; }
+figcaption { font-size: .93rem; line-height: 1.55; color: var(--muted); }
+figcaption b { color: var(--ink); font-weight: 600; }
+.legend { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; justify-content: center; font: 500 .85rem/1.2 var(--f-mono); }
+.legend span { display: inline-flex; align-items: center; gap: .45rem; }
+.legend i { width: 1.4rem; height: 3px; border-radius: 2px; display: inline-block; background: currentColor; }
+.m-cond { color: var(--cond); } .m-adg { color: var(--adg); } .m-rt { color: var(--rt); }
+.fig-mid { max-width: 40rem; margin-inline: auto; width: 100%; }
+
+/* answer */
+.answer { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 1.5rem clamp(1rem, 4vw, 2rem); display: grid; gap: 1rem; }
+.answer h2 { margin: 0; font: 600 1.5rem/1.2 var(--f-display); }
+.answer h2 em { color: var(--rt); }
+.answer .lead { font: italic 400 1.15rem/1.45 var(--f-display); }
+.answer dl { display: grid; grid-template-columns: max-content 1fr; gap: .6rem 1.1rem; margin: 0; }
+.answer dt { font: 500 .8rem/1.9 var(--f-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.answer dd { margin: 0; min-width: 0; }
+.answer h3 { margin: .4rem 0 0; font: 600 1.05rem/1.3 var(--f-display); }
+.answer ul { margin: 0; padding-left: 1.2rem; display: grid; gap: .4rem; }
+@media (max-width: 560px) { .answer dl { grid-template-columns: 1fr; gap: .1rem; } .answer dd { margin-bottom: .5rem; } }
+
+/* sections */
+main { display: grid; gap: 3.2rem; padding-block: 1.5rem 3rem; }
+section { display: grid; gap: 1.05rem; scroll-margin-top: 1rem; }
+section > * { min-width: 0; }
+h2.sec { font: 600 clamp(1.5rem, 3.4vw, 1.9rem)/1.2 var(--f-display); margin: 0; text-wrap: balance; padding-top: 1.2rem; border-top: 1px solid var(--rule); }
+h2.sec .n { color: var(--rt); margin-right: .5rem; }
+h3 { font: 600 1.18rem/1.3 var(--f-display); margin: .5rem 0 0; text-wrap: balance; }
+
+.toc { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 1.1rem 1.4rem; }
+.toc h2 { font: 500 .78rem/1 var(--f-mono); text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin: 0 0 .7rem; }
+.toc ol { margin: 0; padding-left: 1.3rem; display: grid; gap: .15rem; }
+.toc ol ol { padding-left: 1.1rem; font-size: .95rem; }
+.toc a { color: var(--ink); text-decoration: none; }
+.toc a:hover { color: var(--rt); text-decoration: underline; }
+
+ul.fixes { margin: 0; padding-left: 1.2rem; display: grid; gap: .5rem; }
+.eq { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: .9rem 1rem; overflow-x: auto; }
+mjx-container[display="true"] { margin: .3em 0 !important; }
+.take { background: var(--rt-soft); border-radius: 10px; padding: .85rem 1rem; }
+.take b { color: var(--rt); }
+
+/* placeholder plate for figures whose image is still to come */
+.placeholder { border: 2px dashed var(--rule); border-radius: 10px; background: var(--surface); min-height: 15rem; display: grid; place-items: center; text-align: center; color: var(--muted); font: 500 .85rem/1.7 var(--f-mono); padding: 1.2rem; }
+
+/* dose slider paired with the final cells figure */
+.duo { display: grid; grid-template-columns: 1.35fr 1fr; gap: 1.3rem; align-items: start; }
+@media (max-width: 920px) { .duo { grid-template-columns: 1fr; } }
+.etactl { display: flex; align-items: center; justify-content: center; gap: .8rem; flex-wrap: wrap; font: 500 .85rem/1.3 var(--f-mono); color: var(--muted); }
+.etactl input[type="range"] { width: min(16rem, 55vw); accent-color: var(--rt); }
+.etactl output { color: var(--rt); font-weight: 600; min-width: 4.2rem; text-align: left; }
+
+/* cell images */
+.cells { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .5rem; }
+.cells figure { gap: .35rem; }
+.cells img { border-radius: 6px; aspect-ratio: 1; object-fit: cover; width: 100%; background: #000; }
+.cells figcaption { font-size: .82rem; line-height: 1.3; text-align: center; }
+.cells figcaption b { display: block; }
+@media (max-width: 760px) { .cells { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* scene cards: clean video grid, labels live in HTML */
+.scene { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: .9rem .9rem 1rem; gap: .6rem; }
+.scene-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .2rem .8rem; }
+.scene-head b { font: 600 1.05rem/1.2 var(--f-display); }
+.scene-head span { font: 400 .78rem/1.3 var(--f-mono); color: var(--muted); }
+.scene-grid { display: grid; grid-template-columns: 1.5rem minmax(0, 1fr); gap: .35rem .5rem; align-items: stretch; }
+.scene-grid img { border-radius: 6px; width: 100%; background: #fff; outline: 1px solid var(--rule); }
+.cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 1.33%; text-align: center; }
+.cols.four { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: .3%; }
+.cols > span { font: 600 .82rem/1.2 var(--f-body); }
+.rowlab { display: grid; grid-template-rows: 1fr 1fr; row-gap: 2%; }
+.rowlab span { writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; font: 500 .7rem/1 var(--f-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.miss { font: 500 .78rem/1 var(--f-mono); padding: .35rem .65rem; border-radius: 999px; justify-self: center; font-variant-numeric: tabular-nums; }
+.miss.hit { background: var(--rt-soft); color: var(--rt); }
+.miss.off { background: var(--code-bg); color: var(--cond); }
+.scenes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+@media (max-width: 760px) { .scenes { grid-template-columns: 1fr; } }
+.scene.hero-scene { max-width: 44rem; margin-inline: auto; width: 100%; padding: 1.1rem 1.1rem 1.2rem; }
+.scene.hero-scene .cols > span { font-size: .95rem; }
+.scene.hero-scene .miss { font-size: .88rem; padding: .4rem .7rem; }
+
+/* bibtex */
+.bib { position: relative; }
+.bib pre { margin: 0; background: var(--code-bg); border: 1px solid var(--rule); border-radius: 10px; padding: 1rem 1.1rem; overflow-x: auto; font: 400 .85rem/1.6 var(--f-mono); color: var(--ink); }
+.copy { position: absolute; top: .6rem; right: .6rem; font: 500 .78rem/1 var(--f-mono); padding: .45rem .7rem; border-radius: 6px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); cursor: pointer; }
+.copy:hover { border-color: var(--rt); color: var(--rt); }
+
+footer { border-top: 1px solid var(--rule); padding-block: 1.6rem 2.4rem; font-size: .88rem; color: var(--muted); text-align: center; display: grid; gap: .3rem; }
+footer a { color: var(--muted); }
+</style>
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(', '\\)']],
+    displayMath: [['\\[', '\\]']],
+    macros: { ba: '\\mathbf{a}', bx: '\\mathbf{x}', bA: '\\mathbf{A}', bX: '\\mathbf{X}', E: '\\mathbb{E}', KL: '\\mathrm{KL}', Reg: '\\mathrm{Reg}' }
+  },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+</head>
+<body>
+
+<header class="hero col">
+  <div class="venue">arXiv 2606.07399 · stat.ML · 2026</div>
+  <h1>Are Good Generators Good <span class="q">Decision-Makers?</span></h1>
+  <p class="subtitle">Policy Learning for General Interventions via Retargeted Counterfactual Generation</p>
+  <div class="authors">
+    <span><a href="https://www.google.com/search?q=Raphael+C.+Kim+Cornell">Raphael C. Kim</a><sup>1,2</sup></span>
+    <span><a href="https://www.google.com/search?q=Jingsen+Zhu+Cornell">Jingsen Zhu</a><sup>1</sup></span>
+    <span><a href="https://www.google.com/search?q=Ramin+Zabih+Cornell">Ramin Zabih</a><sup>1</sup></span>
+    <span><a href="https://www.google.com/search?q=Michele+Santacatterina+NYU">Michele Santacatterina</a><sup>2</sup></span>
+  </div>
+  <div class="affils">
+    <span><sup>1</sup>Cornell Tech, Cornell University</span>
+    <span><sup>2</sup>Dept. of Biostatistics &amp; Population Health, NYU Grossman School of Medicine</span>
+  </div>
+  <div class="buttons">
+    <a class="btn" href="https://arxiv.org/abs/2606.07399"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h11l5 5v13H4zM14 4v5h5"/></svg>arXiv</a>
+    <a class="btn" href="https://arxiv.org/pdf/2606.07399"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11l4-4 1.4 1.4L12 17.8l-5.4-6.4L8 10l4 4V3zM4 19h16v2H4z"/></svg>PDF</a>
+    <!-- TODO: replace with the repo link once the code is public -->
+    <span class="btn disabled"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.6 16.6 4 12l4.6-4.6L10 8.8 6.8 12l3.2 3.2zm6.8 0L14 15.2l3.2-3.2L14 8.8l1.4-1.4L20 12z"/></svg>Code (coming soon)</span>
+    <a class="btn" href="#bibtex"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/></svg>BibTeX</a>
+  </div>
+</header>
+
+<main>
+
+  <figure class="wide" style="gap:.9rem">
+    <div class="scene hero-scene">
+      <div class="scene-head"><b>Land the ball on the goal line</b><span>out-of-distribution gust · goal 3.4</span></div>
+      <div class="scene-grid">
+        <span></span>
+        <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO (ours)</span></div>
+        <div class="rowlab"><span>Imagined</span><span>Real</span></div>
+        <img src="static/scenes/s106.gif" width="604" height="392" alt="Top row: each generator imagines its chosen push landing the ball on the goal line. Bottom row: in the real simulator, the conditional and ADIGen pushes leave the ball short of the line; only ADIGen-PO's push lands on it.">
+        <span></span>
+        <div class="cols"><span class="miss off">miss 1.50</span><span class="miss off">miss 1.38</span><span class="miss hit">miss 0.07</span></div>
+      </div>
+    </div>
+    <figcaption class="col"><b>Figure 1: Every generator imagines success. Only the retargeted one achieves it.</b> A PhyWorld scene with a gust stronger than any in training. Each method chooses a second push so the ball lands on the black goal line. <i>Top:</i> what each generator imagines for its push; all three predict a hit. <i>Bottom:</i> the same push in the real simulator. Only ADIGen-PO lands on the goal. Scene chosen for illustration; mean regret over all 256 test scenes is 0.65 / 0.34 / 0.20.</figcaption>
+  </figure>
+
+  <section class="col">
+    <div class="answer">
+      <h2>The Answer: <em>not by default.</em></h2>
+      <p class="lead">A generator that looks accurate can still make bad decisions. Retargeting it toward the decisions it supports fixes this.</p>
+      <dl>
+        <dt>What?</dt>
+        <dd>Optimizing a policy against a generator trained on logged data pulls the policy toward interventions the logs barely cover, where the generator is most optimistic.</dd>
+        <dt>Why?</dt>
+        <dd>Regret depends on the generator's error <i>where the learned policy acts</i>, not its global error. The gap is a worst-case density ratio that grows as overlap shrinks.</dd>
+        <dt>How?</dt>
+        <dd>Train a doubly robust, invariant generator (ADIGen), learn a pilot policy from its rollouts, then <b>retarget</b> the generator toward that policy and relearn.</dd>
+      </dl>
+      <h3>Key messages</h3>
+      <ul>
+        <li><b>Video:</b> out of distribution, regret drops from 0.74 to 0.28 at η = 0.002 (conditional vs. retargeted).</li>
+        <li><b>Cells:</b> the retargeted generator recovers the rescue peak of all 3 active compounds with only 10% of high-dose wells.</li>
+        <li><b>Theory:</b> retargeting removes the worst-case density ratio from the regret bound.</li>
+      </ul>
+    </div>
+  </section>
+
+  <nav class="toc col" aria-label="Contents">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#motivation">The problem: logs are not experiments</a></li>
+      <li><a href="#method">Method: ADIGen-PO</a></li>
+      <li><a href="#theory">Why retargeting helps</a></li>
+      <li><a href="#cells">Cell Painting (RxRx19a)</a></li>
+      <li><a href="#video">Video world model (PhyWorld)</a>
+        <ol>
+          <li><a href="#video-results">Results across overlap and dimension</a></li>
+          <li><a href="#video-idood">In-distribution vs. out-of-distribution rollouts</a></li>
+          <li><a href="#video-ood">Out-of-distribution decisions</a></li>
+        </ol>
+      </li>
+    </ol>
+  </nav>
+
+  <section id="motivation" class="col">
+    <h2 class="sec"><span class="n">1</span>The problem: logs are not experiments</h2>
+    <p>World models promise decision-making from logged experience alone: train a generator of <i>what happens if</i> on the data a system already collects, then plan against it. A driving model learns from fleet logs, a manipulation model from teleoperation sessions, a virtual cell from last year's screens. The catch is that logs are produced by a behavior policy with priorities of its own, and that biases them in exactly the two ways that hurt decisions.</p>
+    <ul class="fixes">
+      <li><b>Confounding: actions are correlated with hidden context.</b> A fleet's drivers brake hard mostly when something is already going wrong, so a conditional model concludes that hard braking goes with crashes. A teleoperator attempts a fast grasp only when the bin is tidy. In our physics logs, strong pushes co-occur with strong gusts. Conditioning on the action learns the logger's habits, not the action's effect.</li>
+      <li><b>Vanishing coverage: the interesting actions are the rare ones.</b> Evasive steering at speed, aggressive approach angles, high doses of a promising compound — the actions a planner most needs to evaluate are the ones the logger avoided. In our benchmarks they appear in as little as \(\eta = 0.002\) of the logs.</li>
+    </ul>
+    <p>Planning turns these flaws from noise into bias: the optimizer ranks actions by the generator's imagination and takes the argmax, so it actively seeks the sparsely-covered region where the generator is confidently optimistic. A model that looks accurate on held-out logs can still be a bad decision-maker — that is Figure 1, and global error metrics never see it, because they average under the same logging distribution.</p>
+    <figure>
+      <!-- TODO: swap the placeholder for the provided two-step figure at static/img/fig_two_steps.png (keep the width/height attributes in sync) -->
+      <div class="placeholder">Figure 2 placeholder — the two-step fix diagram<br>(image to be provided; will live at static/img/fig_two_steps.png)</div>
+      <figcaption><b>Figure 2: The fix, in two steps.</b> <b>Step 1 — debias:</b> train the generator with a doubly robust loss and an invariance penalty (ADIGen), so its errors stop tracking the logger's habits. <b>Step 2 — retarget:</b> learn a pilot policy from the debiased generator, then retrain the generator aimed at that policy and relearn (ADIGen-PO), so its remaining error budget is spent where the decision will actually be made.</figcaption>
+    </figure>
+  </section>
+
+  <section id="method" class="col">
+    <h2 class="sec"><span class="n">2</span>Method: ADIGen-PO</h2>
+    <p>Counterfactual generators, from physical world models to virtual cells, are increasingly used to choose interventions: simulate rollouts under candidate actions, then pick the best. We address three problems with this, one per step.</p>
+    <ul class="fixes">
+      <li><b>Biased logs → doubly robust loss.</b> ADIGen (<b>A</b>utomatic, <b>D</b>ebiased, <b>I</b>nvariant <b>Gen</b>eration) reweights with a <i>universal Riesz representer</i> learned by Riesz regression, so no density ratio is inverted, even for high-dimensional joint interventions.</li>
+      <li><b>Shifting environments → invariance penalty</b> on learned representations \(S(\bX), T(\bA)\).</li>
+      <li><b>Generator not built for decisions → retargeting.</b> Learn a pilot policy \(\tilde\pi\), retrain the generator at \(\pi_\lambda = \lambda\tilde\pi + (1-\lambda)\pi_b\), and relearn the policy.</li>
+    </ul>
+    <div class="eq">
+      \[
+        \underbrace{\alpha(\bA,\bX,E)\big[\ell(\theta;Y,\bA)-\zeta_\psi(\theta;\bX,\bA)\big]}_{\text{reweighted residual}}
+        + \underbrace{\int \zeta_\psi(\theta;\bX,\ba)\,\nu(d\ba\mid\bX)}_{\text{plug-in over target law }\nu}
+        + \lambda_{\mathrm{inv}}\,\hat{\mathcal I}_n(\theta)
+      \]
+    </div>
+    <p>Policies are KL-regularized tilts of the logger, \(\pi_\beta \propto \pi_b\, e^{\hat\mu/\beta}\), fit from generator rollouts. In round 1 ADIGen is trained at a fixed intervention law \(\nu_0\). In round 2 it is retrained at \(\nu = \pi_\lambda\), with cross-fitting across data halves.</p>
+  </section>
+
+  <section id="theory" class="col">
+    <h2 class="sec"><span class="n">3</span>Why retargeting helps</h2>
+    <p>The key quantity is the <b>transfer factor</b> \(\rho(\pi\,\|\,\nu) = \|\pi/\nu\|_\infty\): how much a generator's error under its training law \(\nu\) inflates under the policy \(\pi\) that acts.</p>
+    <ul class="fixes">
+      <li><b>ADIGen's excess risk</b> has a doubly robust product remainder: errors in the weights and in the pilot generator multiply (Thm. 1).</li>
+      <li><b>Regret follows error under the learned policy</b>, \(\Reg \lesssim \tfrac1\beta\, \rho(\hat\pi\,\|\,\nu)\cdot\text{(generator error under }\nu)\). A conditional generator (\(\nu = \pi_b\)) pays the worst-case \(\rho(\hat\pi\,\|\,\pi_b)\) (Thm. 2, Cor. 2.1).</li>
+      <li><b>Retargeting caps the transfer factor</b> at the price of an average (\(\chi^2\)) weight cost. The gain grows like \(\sqrt\rho\) as overlap falls, and mixtures are within 2× of the best target law (Thms. 3–4).</li>
+    </ul>
+  </section>
+
+  <section id="cells" class="wide">
+    <div class="col"><h2 class="sec"><span class="n">4</span>Cell Painting (RxRx19a)</h2></div>
+    <p class="col">Outcomes are microscopy images of SARS-CoV-2-infected cells. The intervention is compound × dose (256 arms), and the utility is a rescue score from 0 (infected) to 1 (mock). We bias the logs by keeping only a fraction \(\eta\) of VERO wells at doses ≥ 1 µM, which is exactly where rescue happens.</p>
+    <figure class="wide">
+      <div class="cells">
+        <figure><img src="static/cells/mock.jpg" width="512" height="512" loading="lazy" alt="Mock-infected VERO cells: dense monolayer."><figcaption><b>Mock</b>uninfected</figcaption></figure>
+        <figure><img src="static/cells/infected.jpg" width="512" height="512" loading="lazy" alt="Infected VERO cells, no compound: sparse, rounded cells."><figcaption><b>Infected</b>no compound</figcaption></figure>
+        <figure><img src="static/cells/gs_low.jpg" width="512" height="512" loading="lazy" alt="Infected VERO cells with GS-441524 at 0.01 micromolar: still damaged."><figcaption><b>GS-441524</b>0.01 µM</figcaption></figure>
+        <figure><img src="static/cells/gs_high.jpg" width="512" height="512" loading="lazy" alt="Infected VERO cells with GS-441524 at 10 micromolar: dense, like mock."><figcaption><b>GS-441524</b>10 µM</figcaption></figure>
+        <figure><img src="static/cells/rdv_high.jpg" width="512" height="512" loading="lazy" alt="Infected VERO cells with Remdesivir at 10 micromolar: dense."><figcaption><b>Remdesivir</b>10 µM</figcaption></figure>
+        <figure><img src="static/cells/cq_high.jpg" width="512" height="512" loading="lazy" alt="Infected VERO cells with Chloroquine at 10 micromolar: dense."><figcaption><b>Chloroquine</b>10 µM</figcaption></figure>
+      </div>
+      <figcaption class="col"><b>Figure 3: Real Cell Painting wells (VERO).</b> At high doses the three active compounds restore a dense monolayer close to mock. The biased logger thins exactly these high-dose wells. Five channels shown as RGB (nuclei, ER, actin, RNA, Golgi/membrane); central crop, first well per condition.</figcaption>
+    </figure>
+    <div class="duo wide">
+      <figure>
+        <div class="etactl">
+          <span>overlap</span>
+          <input type="range" id="eta-slider" min="0" max="4" step="1" value="0" aria-label="Overlap eta of the dose-response figure">
+          <output id="eta-out">η = 0.1</output>
+        </div>
+        <div class="plate"><img id="eta-img" src="static/img/dose_eta0.1.png" width="2200" height="640" loading="lazy" alt="Dose-response curves for GS-441524, Remdesivir and Chloroquine at the overlap chosen with the slider: real wells rise sharply at high dose; at low overlap the conditional and ADIGen policies stay flat while retargeted ADIGen rises toward the real peak."></div>
+        <figcaption><b>Figure 4: Dose–response as the logs thin out (drag the slider).</b> Black: real held-out wells; shaded: the ≥ 1 µM band the logger thins to a fraction \(\eta\). At \(\eta = 0.1\) the conditional and ADIGen policies (overlapping) read the response as flat and miss the rescue, while retargeted ADIGen climbs toward the real peak. As \(\eta\) rises toward 1 the logs regain coverage and the methods converge.</figcaption>
+      </figure>
+      <figure>
+        <div class="plate"><img src="static/img/fig_cells_c32fair_rho.png" width="2080" height="2080" loading="lazy" alt="Line plots for RxRx19a against overlap: regret, generator RMSE, peak recovery and regret reduction."></div>
+        <figcaption><b>Figure 5: RxRx19a across overlap η.</b> The same sweep summarized. Rows: regret; generator RMSE globally (solid) and at \(\pi^\star\) (dotted); peak recovery (predicted / true rescue height); regret reduction from retargeting. The advantage of retargeting grows as overlap falls — the per-\(\eta\) curves on the left are the raw material of this figure.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section id="video" class="wide">
+    <div class="col"><h2 class="sec"><span class="n">5</span>Video world model (PhyWorld)</h2></div>
+    <p class="col">Outcomes are rendered videos from <a href="https://phyworld.github.io/">PhyWorld</a>, and the generator is a flow-matching DiT in VAE latent space. Each ball gets a push and a shared gust; the policy chooses a second push to land each ball on a goal. Strong gusts (\(|g| \in [0.50, 0.85]\)) lie outside the training range (\(|g| \le 0.25\)) and appear in the logs with probability \(\eta\).</p>
+
+    <h3 class="col" id="video-results">5.1 Results across overlap and dimension</h3>
+    <figure class="fig-mid">
+      <div class="plate"><img src="static/img/fig_phyworld_rho_m_30k.png" width="2080" height="2080" loading="lazy" alt="Line plots for PhyWorld: regret, model error, self-evaluation error and regret reduction against overlap and number of balls."></div>
+      <figcaption><b>Figure 6: PhyWorld at a matched training budget.</b> Left: overlap \(\eta\) (\(m = 1\)). Right: number of balls \(m\) (\(\eta = 0.005\)). At low overlap retargeting has the lowest regret, then ADIGen, then the conditional model. It also has the smallest self-evaluation error: it knows how good its own plan is.</figcaption>
+    </figure>
+
+    <h3 class="col" id="video-idood">5.2 In-distribution vs. out-of-distribution rollouts</h3>
+    <p class="col">First, the generators alone. Each is asked to roll out one fixed push, with no policy involved. <b>In-distribution</b> pushes lie inside the band the logger used. <b>Out-of-distribution</b> pushes lie 0.6–2.0 outside it (\(\eta = 0.002\), small model). Shown: all three pushes rendered in each band.</p>
+    <figure>
+      <div class="scene">
+        <div class="scene-head"><b>In-distribution</b><span>pushes inside the logged band</span></div>
+        <div class="scene-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="cols four"><span style="color:var(--ink)">Real</span><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
+          <img src="static/scenes/id032.gif" width="1033" height="258" loading="lazy" alt="In-distribution push: all three generators roll out a solid ball at the real position.">
+          <div class="cols four"><span></span><span class="miss hit">0.00</span><span class="miss hit">0.03</span><span class="miss off">0.16</span></div>
+          <img src="static/scenes/id043.gif" width="1033" height="258" loading="lazy" alt="Second in-distribution push: all generators match the real rollout.">
+          <div class="cols four"><span></span><span class="miss hit">0.06</span><span class="miss hit">0.02</span><span class="miss hit">0.08</span></div>
+          <img src="static/scenes/id245.gif" width="1033" height="258" loading="lazy" alt="Third in-distribution push: all generators match the real rollout.">
+          <div class="cols four"><span></span><span class="miss hit">0.01</span><span class="miss hit">0.01</span><span class="miss hit">0.05</span></div>
+        </div>
+      </div>
+      <figcaption class="col"><b>Figure 7: In-distribution, every generator looks good.</b> All three produce a crisp ball that lands where the real one does (badges: landing miss at frame 30). On pushes like these, an ordinary conditional generator is as accurate as ours.</figcaption>
+    </figure>
+    <figure>
+      <div class="scene">
+        <div class="scene-head"><b>Out-of-distribution</b><span>pushes 0.6–2.0 outside the logged band</span></div>
+        <div class="scene-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="cols four"><span style="color:var(--ink)">Real</span><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
+          <img src="static/scenes/ood169.gif" width="1033" height="258" loading="lazy" alt="Out-of-distribution push: the conditional generator's ball fades and lags; ADIGen and ADIGen-PO keep a solid ball near the real position.">
+          <div class="cols four"><span></span><span class="miss off">0.57</span><span class="miss off">0.19</span><span class="miss off">0.16</span></div>
+          <img src="static/scenes/ood228.gif" width="1033" height="258" loading="lazy" alt="Second out-of-distribution push: the conditional generator's ball blurs; the doubly robust generators stay solid.">
+          <div class="cols four"><span></span><span class="miss off">0.65</span><span class="miss off">0.59</span><span class="miss off">0.48</span></div>
+          <img src="static/scenes/ood212.gif" width="1033" height="258" loading="lazy" alt="Third out-of-distribution push: all three generators fall short of the real position.">
+          <div class="cols four"><span></span><span class="miss off">0.63</span><span class="miss off">0.59</span><span class="miss off">0.58</span></div>
+        </div>
+      </div>
+      <figcaption class="col"><b>Figure 8: Out-of-distribution, the conditional generator breaks down.</b> Far from the logged pushes its ball shrinks, fades and lags behind the real one. The doubly robust generators keep a solid ball and land closer. Out of distribution, mean miss over all six rendered pushes is 0.47 (conditional), 0.33 (ADIGen) and 0.26 (ADIGen-PO). In distribution, the conditional generator is as good or better.</figcaption>
+    </figure>
+
+    <h3 class="col" id="video-ood">5.3 Out-of-distribution decisions</h3>
+    <p class="col">Each scene has a gust stronger than any in training, seen in only 0.2% of logged scenes (\(\eta = 0.002\)). Top row: what each generator imagines for the push it chose. Bottom row: that push in the real simulator. The black line is the goal.</p>
+    <figure>
+      <div class="scenes">
+        <div class="scene">
+          <div class="scene-head"><b>Scene 236</b><span>best possible miss 0.03</span></div>
+          <div class="scene-grid">
+            <span></span>
+            <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
+            <div class="rowlab"><span>Imagined</span><span>Real</span></div>
+            <img src="static/scenes/s236.gif" width="604" height="392" loading="lazy" alt="Scene 236: all three generators imagine a hit; in the simulator only ADIGen-PO's push reaches the goal line.">
+            <span></span>
+            <div class="cols"><span class="miss off">1.14</span><span class="miss off">1.48</span><span class="miss hit">0.05</span></div>
+          </div>
+        </div>
+        <div class="scene">
+          <div class="scene-head"><b>Scene 28</b><span>best possible miss 0.07</span></div>
+          <div class="scene-grid">
+            <span></span>
+            <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
+            <div class="rowlab"><span>Imagined</span><span>Real</span></div>
+            <img src="static/scenes/s28.gif" width="604" height="392" loading="lazy" alt="Scene 28: matching imagined rollouts; in the simulator only ADIGen-PO lands on the goal.">
+            <span></span>
+            <div class="cols"><span class="miss off">1.39</span><span class="miss off">1.01</span><span class="miss hit">0.07</span></div>
+          </div>
+        </div>
+        <div class="scene">
+          <div class="scene-head"><b>Scene 18</b><span>best possible miss 0.02</span></div>
+          <div class="scene-grid">
+            <span></span>
+            <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
+            <div class="rowlab"><span>Imagined</span><span>Real</span></div>
+            <img src="static/scenes/s18.gif" width="604" height="392" loading="lazy" alt="Scene 18: the conditional push falls far short, ADIGen gets partway, ADIGen-PO lands on the goal.">
+            <span></span>
+            <div class="cols"><span class="miss off">1.58</span><span class="miss off">0.44</span><span class="miss hit">0.05</span></div>
+          </div>
+        </div>
+        <div class="scene">
+          <div class="scene-head"><b>Scene 230</b><span>best possible miss 0.04</span></div>
+          <div class="scene-grid">
+            <span></span>
+            <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
+            <div class="rowlab"><span>Imagined</span><span>Real</span></div>
+            <img src="static/scenes/s230.gif" width="604" height="392" loading="lazy" alt="Scene 230: conditional misses badly, ADIGen gets partway, ADIGen-PO lands on the goal.">
+            <span></span>
+            <div class="cols"><span class="miss off">1.38</span><span class="miss off">0.69</span><span class="miss hit">0.04</span></div>
+          </div>
+        </div>
+      </div>
+      <figcaption class="col"><b>Figure 9: Out-of-distribution decisions.</b> Badges show the real landing miss of each method's chosen push. In every scene all three generators imagine a hit, but only ADIGen-PO's push lands. In scenes 18 and 230, debiasing alone (ADIGen) gets partway there and retargeting closes the gap. Scenes chosen for illustration; mean regret over all 256 scenes is 0.65 / 0.34 / 0.20.</figcaption>
+    </figure>
+
+  </section>
+
+  <section id="bibtex" class="col">
+    <h2 class="sec">BibTeX</h2>
+    <div class="bib">
+      <button class="copy" id="copy-bib" type="button">Copy</button>
+<pre id="bib-text">@misc{kim2026goodgenerators,
+  title         = {Are Good Generators Good Decision-Makers? Policy Learning for
+                   General Interventions via Retargeted Counterfactual Generation},
+  author        = {Kim, Raphael C. and Zhu, Jingsen and Zabih, Ramin and
+                   Santacatterina, Michele},
+  year          = {2026},
+  eprint        = {2606.07399},
+  archivePrefix = {arXiv},
+  primaryClass  = {stat.ML},
+  doi           = {10.48550/arXiv.2606.07399}
+}</pre>
+    </div>
+  </section>
+
+</main>
+
+<footer class="col">
+  <span>Raphael C. Kim, Jingsen Zhu, Ramin Zabih, Michele Santacatterina · 2026</span>
+  <span>Page layout inspired by the <a href="https://phyworld.github.io/">PhyWorld</a> project page.</span>
+</footer>
+
+<script>
+document.getElementById('copy-bib').addEventListener('click', function () {
+  var btn = this, text = document.getElementById('bib-text').textContent;
+  function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = 'Copy'; }, 1600); }
+  function fallback() {
+    var r = document.createRange(); r.selectNodeContents(document.getElementById('bib-text'));
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done('Selected');
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function () { done('Copied'); }, fallback);
+  } else { fallback(); }
+});
+
+(function () {
+  var ETAS = ['0.1', '0.25', '0.5', '0.75', '1.0'];
+  var slider = document.getElementById('eta-slider'), img = document.getElementById('eta-img'), out = document.getElementById('eta-out');
+  if (!slider) return;
+  ETAS.forEach(function (e) { new Image().src = 'static/img/dose_eta' + e + '.png'; });   // preload for smooth dragging
+  slider.addEventListener('input', function () {
+    var e = ETAS[+slider.value];
+    img.src = 'static/img/dose_eta' + e + '.png';
+    out.textContent = 'η = ' + e;
+  });
+})();
+</script>
+</body>
+</html>
