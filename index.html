@@ -348,9 +348,9 @@ window.MathJax = {
         <div class="scene-head"><b>Land the ball on the goal line</b><span>out-of-distribution gust · goal 3.4</span></div>
         <div class="scene-grid">
           <span></span>
-          <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO (ours)</span></div>
+          <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">Retargeting (ours)</span></div>
           <div class="rowlab"><span>Imagined</span><span>Real</span></div>
-          <img src="static/scenes/s106.gif" width="604" height="392" alt="Top row: each generator imagines its chosen push landing the ball on the goal line. Bottom row: in the real simulator, the conditional and ADIGen pushes leave the ball short of the line; only ADIGen-PO's push lands on it.">
+          <img src="static/scenes/s106.gif" width="604" height="392" alt="Top row: each generator imagines its chosen push landing the ball on the goal line. Bottom row: in the real simulator, the conditional and ADIGen pushes leave the ball short of the line; only the retargeted push lands on it.">
           <span></span>
           <div class="cols"><span class="miss off">miss 1.50</span><span class="miss off">miss 1.38</span><span class="miss hit">miss 0.07</span></div>
         </div>
@@ -360,9 +360,9 @@ window.MathJax = {
           <div class="scene-head"><b>Scene 236</b><span>best possible miss 0.03</span></div>
           <div class="scene-grid">
             <span></span>
-            <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
+            <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">Retargeting</span></div>
             <div class="rowlab"><span>Imagined</span><span>Real</span></div>
-            <img src="static/scenes/s236.gif" width="604" height="392" loading="lazy" alt="Scene 236: all three generators imagine a hit; in the simulator only ADIGen-PO's push reaches the goal line.">
+            <img src="static/scenes/s236.gif" width="604" height="392" loading="lazy" alt="Scene 236: all three generators imagine a hit; in the simulator only the retargeted push reaches the goal line.">
             <span></span>
             <div class="cols"><span class="miss off">1.14</span><span class="miss off">1.48</span><span class="miss hit">0.05</span></div>
           </div>
@@ -371,9 +371,9 @@ window.MathJax = {
           <div class="scene-head"><b>Scene 28</b><span>best possible miss 0.07</span></div>
           <div class="scene-grid">
             <span></span>
-            <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
+            <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">Retargeting</span></div>
             <div class="rowlab"><span>Imagined</span><span>Real</span></div>
-            <img src="static/scenes/s28.gif" width="604" height="392" loading="lazy" alt="Scene 28: matching imagined rollouts; in the simulator only ADIGen-PO lands on the goal.">
+            <img src="static/scenes/s28.gif" width="604" height="392" loading="lazy" alt="Scene 28: matching imagined rollouts; in the simulator only the retargeted model lands on the goal.">
             <span></span>
             <div class="cols"><span class="miss off">1.39</span><span class="miss off">1.01</span><span class="miss hit">0.07</span></div>
           </div>
@@ -382,9 +382,9 @@ window.MathJax = {
           <div class="scene-head"><b>Scene 18</b><span>best possible miss 0.02</span></div>
           <div class="scene-grid">
             <span></span>
-            <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
+            <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">Retargeting</span></div>
             <div class="rowlab"><span>Imagined</span><span>Real</span></div>
-            <img src="static/scenes/s18.gif" width="604" height="392" loading="lazy" alt="Scene 18: the conditional push falls far short, ADIGen gets partway, ADIGen-PO lands on the goal.">
+            <img src="static/scenes/s18.gif" width="604" height="392" loading="lazy" alt="Scene 18: the conditional push falls far short, ADIGen gets partway, the retargeted model lands on the goal.">
             <span></span>
             <div class="cols"><span class="miss off">1.58</span><span class="miss off">0.44</span><span class="miss hit">0.05</span></div>
           </div>
@@ -393,15 +393,15 @@ window.MathJax = {
           <div class="scene-head"><b>Scene 230</b><span>best possible miss 0.04</span></div>
           <div class="scene-grid">
             <span></span>
-            <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
+            <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">Retargeting</span></div>
             <div class="rowlab"><span>Imagined</span><span>Real</span></div>
-            <img src="static/scenes/s230.gif" width="604" height="392" loading="lazy" alt="Scene 230: conditional misses badly, ADIGen gets partway, ADIGen-PO lands on the goal.">
+            <img src="static/scenes/s230.gif" width="604" height="392" loading="lazy" alt="Scene 230: conditional misses badly, ADIGen gets partway, the retargeted model lands on the goal.">
             <span></span>
             <div class="cols"><span class="miss off">1.38</span><span class="miss off">0.69</span><span class="miss hit">0.04</span></div>
           </div>
         </div>
       </div>
-      <figcaption class="col"><b>Figure 5: Every generator imagines success. Only the retargeted one achieves it.</b> Badges show the real landing miss of each method's chosen push. In every scene all three generators imagine a hit, but only ADIGen-PO's push lands. In scenes 18 and 230, debiasing alone (ADIGen) gets partway there and retargeting closes the gap. Scenes chosen for illustration; mean regret over all 256 scenes is 0.65 / 0.34 / 0.20.</figcaption>
+      <figcaption class="col"><b>Figure 5: Every generator imagines success. Only the retargeted one achieves it.</b> Badges show the real landing miss of each method's chosen push. In every scene all three generators imagine a hit, but only the retargeted push lands. In scenes 18 and 230, debiasing alone (ADIGen) gets partway there and retargeting closes the gap. Scenes chosen for illustration; mean regret over all 256 scenes is 0.65 / 0.34 / 0.20.</figcaption>
     </figure>
 
     <h3 class="col" id="video-results">5.2 Results across overlap and dimension</h3>
