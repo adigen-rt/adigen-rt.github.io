@@ -292,18 +292,18 @@ window.MathJax = {
           \]
         </div>
       </li>
-      <li><b>Generator not built for decisions → retargeting.</b> Learn a pilot policy \(\tilde\pi\), retrain the generator at \(\pi_\lambda = \lambda\tilde\pi + (1-\lambda)\pi_b\), and relearn the policy. Two guarantees: instead of paying for the single worst action the policy might take, the retargeted generator pays only an average (\(\chi^2\)) reweighting cost; and the choice of \(\pi_\lambda\) is nearly free — it is guaranteed to come within 2× of the best target law one could have picked (Thms. 3–4).</li>
+      <li><b>Generator not built for decisions → retargeting.</b> Learn a pilot policy from the debiased generator, retrain the generator aimed at a blend of that policy and the logger, then relearn the policy — the generator's remaining error is spent where the decision will actually be made.</li>
     </ul>
     <p>Policies are KL-regularized tilts of the logger, \(\pi_\beta \propto \pi_b\, e^{\hat\mu/\beta}\), fit from generator rollouts. In round 1 ADIGen is trained at a fixed intervention law \(\nu_0\). In round 2 it is retrained at \(\nu = \pi_\lambda\), with cross-fitting across data halves.</p>
   </section>
 
   <section id="theory" class="col">
     <h2 class="sec"><span class="n">3</span>Why retargeting helps</h2>
-    <p>Every generator is trained under some intervention law \(\nu\) and then judged under another: the policy \(\hat\pi\) that finally acts. The exchange rate between the two is the <b>transfer factor</b> \(\rho(\hat\pi\,\|\,\nu) = \|\hat\pi/\nu\|_\infty\) — how much error accumulated under \(\nu\) can inflate at the actions \(\hat\pi\) actually takes. The theory is three steps on this one quantity.</p>
+    <p>Every generator is trained under one distribution of actions and judged under another: the policy that finally acts. The theory tracks the exchange rate between the two — the <b>transfer factor</b>, how much the generator's error can inflate at the actions the policy actually takes. Three steps:</p>
     <ul class="fixes">
-      <li><b>Debiasing works (Thm. 1).</b> ADIGen's excess risk has the doubly robust product structure: the weight error and the outcome-model error <i>multiply</i>, so either nuisance can be rough as long as the other is accurate — and no density ratio is ever inverted.</li>
-      <li><b>Regret pays the transfer factor (Thm. 2, Cor. 2.1).</b> \(\Reg \lesssim \tfrac1\beta\, \rho(\hat\pi\,\|\,\nu)\cdot\text{(generator error under }\nu)\). A conditional generator trains at \(\nu = \pi_b\), the logger itself — so it pays the worst-case ratio \(\rho(\hat\pi\,\|\,\pi_b)\), which explodes precisely as overlap \(\eta\) falls.</li>
-      <li><b>Retargeting caps it (Thms. 3–4).</b> Retraining at \(\nu = \pi_\lambda\) bounds the transfer factor at the price of an <i>average</i> (\(\chi^2\)) weight cost — a worst-case quantity traded for a mean. The net gain grows like \(\sqrt\rho\) as overlap falls, and the \(\lambda\)-mixture is within 2× of the best possible target law.</li>
+      <li><b>Debiasing works (Thm. 1).</b> ADIGen's error has the doubly robust product form: its two learned ingredients — the reweighting and the outcome model — <i>multiply</i>, so a mistake in one is forgiven if the other is accurate. And nothing is ever divided by a small probability, so training stays stable even on badly skewed logs.</li>
+      <li><b>Regret pays the transfer factor (Thm. 2).</b> A policy's regret is at most the generator's error times the transfer factor. A conditional generator trains on the logs as they come, so it pays the <i>worst-case</i> mismatch between where it learned and where the policy acts — which blows up exactly as overlap falls.</li>
+      <li><b>Retargeting caps it (Thms. 3–4).</b> Retraining the generator toward the policy that will use it replaces that worst-case mismatch with an <i>average</i> one. The benefit grows as overlap shrinks, and the simple pilot–logger mixture is guaranteed within a factor of two of the best target one could have chosen.</li>
     </ul>
     <div class="take"><b>In one line:</b> a conditional generator spends its error budget where the logs are; a retargeted one spends it where the decision will be made.</div>
   </section>
