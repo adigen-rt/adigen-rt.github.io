@@ -140,6 +140,14 @@ mjx-container[display="true"] { margin: .3em 0 !important; }
 .etactl input[type="range"] { width: min(16rem, 55vw); accent-color: var(--rt); }
 .etactl output { color: var(--rt); font-weight: 600; min-width: 4.2rem; text-align: left; }
 
+/* domain photo strip (Figure 1) */
+.domains { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem 1rem; }
+.domains figure { gap: .4rem; }
+.domains img { border-radius: 8px; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+.domains figcaption { font-size: .86rem; line-height: 1.45; }
+.domains figcaption b { display: block; color: var(--ink); }
+@media (max-width: 640px) { .domains { grid-template-columns: 1fr; } }
+
 /* cell images */
 .cells { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .5rem; }
 .cells figure { gap: .35rem; }
@@ -218,18 +226,12 @@ window.MathJax = {
 <main>
 
   <figure class="wide" style="gap:.9rem">
-    <div class="scene hero-scene">
-      <div class="scene-head"><b>Land the ball on the goal line</b><span>out-of-distribution gust · goal 3.4</span></div>
-      <div class="scene-grid">
-        <span></span>
-        <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO (ours)</span></div>
-        <div class="rowlab"><span>Imagined</span><span>Real</span></div>
-        <img src="static/scenes/s106.gif" width="604" height="392" alt="Top row: each generator imagines its chosen push landing the ball on the goal line. Bottom row: in the real simulator, the conditional and ADIGen pushes leave the ball short of the line; only ADIGen-PO's push lands on it.">
-        <span></span>
-        <div class="cols"><span class="miss off">miss 1.50</span><span class="miss off">miss 1.38</span><span class="miss hit">miss 0.07</span></div>
-      </div>
+    <div class="domains">
+      <figure><img src="static/img/domains/robotics.jpg" width="1200" height="800" alt="A laboratory robot arm handling an assay plate."><figcaption><b>Robotics</b>Teleoperators attempt the grasps they trust, so demonstrations cover only the approaches that looked safe.</figcaption></figure>
+      <figure><img src="static/img/domains/driving.jpg" width="1200" height="800" alt="A Waymo self-driving car on a city street."><figcaption><b>Driving</b>Fleet drivers brake before danger materializes, so the logs barely contain the maneuvers that matter most.</figcaption></figure>
+      <figure><img src="static/img/domains/medicine.jpg" width="1200" height="800" alt="An intensive care bed surrounded by infusion pumps."><figcaption><b>Medicine</b>Clinicians dose by how sick the patient already is, so treatment and prognosis are entangled in every record.</figcaption></figure>
     </div>
-    <figcaption class="col"><b>Figure 1: Every generator imagines success. Only the retargeted one achieves it.</b> A PhyWorld scene with a gust stronger than any in training. Each method chooses a second push so the ball lands on the black goal line. <i>Top:</i> what each generator imagines for its push; all three predict a hit. <i>Bottom:</i> the same push in the real simulator. Only ADIGen-PO lands on the goal. Scene chosen for illustration; mean regret over all 256 test scenes is 0.65 / 0.34 / 0.20.</figcaption>
+    <figcaption class="col"><b>Figure 1: The data was never an experiment.</b> World models for decision-making are trained on logs produced by rational actors — operators, drivers, clinicians — and their good judgment is exactly what biases the data: actions are correlated with hidden context, and the actions most worth evaluating are the ones they avoided.</figcaption>
   </figure>
 
   <section class="col">
@@ -237,10 +239,12 @@ window.MathJax = {
       <h2>The Answer: <em>not by default.</em></h2>
       <p class="lead">A generator that looks accurate can still make bad decisions. Retargeting it toward the decisions it supports fixes this.</p>
       <dl>
+        <dt>Problem</dt>
+        <dd>Logs are derived from rational actors — the sensible behavior that produced the data is exactly what biases it.</dd>
         <dt>What?</dt>
-        <dd>Optimizing a policy against a generator trained on logged data pulls the policy toward interventions the logs barely cover, where the generator is most optimistic.</dd>
+        <dd>Optimizing a policy against a generator trained on logged data can lead to biased decision-making.</dd>
         <dt>Why?</dt>
-        <dd>Regret depends on the generator's error <i>where the learned policy acts</i>, not its global error. The gap is a worst-case density ratio that grows as overlap shrinks.</dd>
+        <dd>Regret depends on the generator's error <i>where the learned policy acts</i>.</dd>
         <dt>How?</dt>
         <dd>Train a doubly robust, invariant generator (ADIGen), learn a pilot policy from its rollouts, then <b>retarget</b> the generator toward that policy and relearn.</dd>
       </dl>
@@ -257,7 +261,7 @@ window.MathJax = {
     <h2>Contents</h2>
     <ol>
       <li><a href="#motivation">The problem: logs are not experiments</a></li>
-      <li><a href="#method">Method: ADIGen-PO</a></li>
+      <li><a href="#method">Policy learning with retargeted counterfactual generation</a></li>
       <li><a href="#theory">Why retargeting helps</a></li>
       <li><a href="#cells">Cell Painting (RxRx19a)</a></li>
       <li><a href="#video">Video world model (PhyWorld)</a>
@@ -270,13 +274,17 @@ window.MathJax = {
   </nav>
 
   <section id="motivation" class="col">
-    <h2 class="sec"><span class="n">1</span>The problem: logs are not experiments</h2>
-    <p>World models promise decision-making from logged experience alone: train a generator of <i>what happens if</i> on the data a system already collects, then plan against it. A driving model learns from fleet logs, a manipulation model from teleoperation sessions, a virtual cell from last year's screens. The catch is that logs are produced by a behavior policy with priorities of its own, and that biases them in exactly the two ways that hurt decisions.</p>
+    <h2 class="sec"><span class="n">1</span>The problem: logs come from rational actors</h2>
+    <p>World models promise decision-making from logged experience alone: train a generator of <i>what happens if</i> on the data a system already collects, then plan against it. The catch is that logs are derived from rational actors. Nobody logged at random — the safety driver braked when it was wise, the teleoperator reached for the grasp that looked safe, the clinician dosed the patient who needed it. That rationality, not noise or malice, biases the data in exactly the two ways that hurt decisions.</p>
+    <figure>
+      <!-- TODO: swap for the problem illustration the user will describe (static/img/fig_problem.png) -->
+      <div class="placeholder" style="min-height:11rem">Problem illustration placeholder<br>(descriptive image to come; will live at static/img/fig_problem.png)</div>
+    </figure>
     <ul class="fixes">
       <li><b>Confounding: actions are correlated with hidden context.</b> A fleet's drivers brake hard mostly when something is already going wrong, so a conditional model concludes that hard braking goes with crashes. A teleoperator attempts a fast grasp only when the bin is tidy. In our physics logs, strong pushes co-occur with strong gusts. Conditioning on the action learns the logger's habits, not the action's effect.</li>
       <li><b>Vanishing coverage: the interesting actions are the rare ones.</b> Evasive steering at speed, aggressive approach angles, high doses of a promising compound — the actions a planner most needs to evaluate are the ones the logger avoided. In our benchmarks they appear in as little as \(\eta = 0.002\) of the logs.</li>
     </ul>
-    <p>Planning turns these flaws from noise into bias: the optimizer ranks actions by the generator's imagination and takes the argmax, so it actively seeks the sparsely-covered region where the generator is confidently optimistic. A model that looks accurate on held-out logs can still be a bad decision-maker — that is Figure 1, and global error metrics never see it, because they average under the same logging distribution.</p>
+    <p>Planning turns these flaws from noise into bias: the optimizer ranks actions by the generator's imagination and takes the argmax, so it actively seeks the sparsely-covered region where the generator is confidently optimistic. A model that looks accurate on held-out logs can still be a bad decision-maker — Figure 6 shows it happening — and global error metrics never see it, because they average under the same logging distribution.</p>
     <figure>
       <!-- TODO: swap the placeholder for the provided two-step figure at static/img/fig_two_steps.png (keep the width/height attributes in sync) -->
       <div class="placeholder">Figure 2 placeholder — the two-step fix diagram<br>(image to be provided; will live at static/img/fig_two_steps.png)</div>
@@ -285,7 +293,7 @@ window.MathJax = {
   </section>
 
   <section id="method" class="col">
-    <h2 class="sec"><span class="n">2</span>Method: ADIGen-PO</h2>
+    <h2 class="sec"><span class="n">2</span>Policy Learning with Retargeted Counterfactual Generation</h2>
     <p>Counterfactual generators, from physical world models to virtual cells, are increasingly used to choose interventions: simulate rollouts under candidate actions, then pick the best. We address three problems with this, one per step.</p>
     <ul class="fixes">
       <li><b>Biased logs → doubly robust loss.</b> ADIGen (<b>A</b>utomatic, <b>D</b>ebiased, <b>I</b>nvariant <b>Gen</b>eration) reweights with a <i>universal Riesz representer</i> learned by Riesz regression, so no density ratio is inverted, even for high-dimensional joint interventions.</li>
@@ -304,12 +312,13 @@ window.MathJax = {
 
   <section id="theory" class="col">
     <h2 class="sec"><span class="n">3</span>Why retargeting helps</h2>
-    <p>The key quantity is the <b>transfer factor</b> \(\rho(\pi\,\|\,\nu) = \|\pi/\nu\|_\infty\): how much a generator's error under its training law \(\nu\) inflates under the policy \(\pi\) that acts.</p>
+    <p>Every generator is trained under some intervention law \(\nu\) and then judged under another: the policy \(\hat\pi\) that finally acts. The exchange rate between the two is the <b>transfer factor</b> \(\rho(\hat\pi\,\|\,\nu) = \|\hat\pi/\nu\|_\infty\) — how much error accumulated under \(\nu\) can inflate at the actions \(\hat\pi\) actually takes. The theory is three steps on this one quantity.</p>
     <ul class="fixes">
-      <li><b>ADIGen's excess risk</b> has a doubly robust product remainder: errors in the weights and in the pilot generator multiply (Thm. 1).</li>
-      <li><b>Regret follows error under the learned policy</b>, \(\Reg \lesssim \tfrac1\beta\, \rho(\hat\pi\,\|\,\nu)\cdot\text{(generator error under }\nu)\). A conditional generator (\(\nu = \pi_b\)) pays the worst-case \(\rho(\hat\pi\,\|\,\pi_b)\) (Thm. 2, Cor. 2.1).</li>
-      <li><b>Retargeting caps the transfer factor</b> at the price of an average (\(\chi^2\)) weight cost. The gain grows like \(\sqrt\rho\) as overlap falls, and mixtures are within 2× of the best target law (Thms. 3–4).</li>
+      <li><b>Debiasing works (Thm. 1).</b> ADIGen's excess risk has the doubly robust product structure: the weight error and the outcome-model error <i>multiply</i>, so either nuisance can be rough as long as the other is accurate — and no density ratio is ever inverted.</li>
+      <li><b>Regret pays the transfer factor (Thm. 2, Cor. 2.1).</b> \(\Reg \lesssim \tfrac1\beta\, \rho(\hat\pi\,\|\,\nu)\cdot\text{(generator error under }\nu)\). A conditional generator trains at \(\nu = \pi_b\), the logger itself — so it pays the worst-case ratio \(\rho(\hat\pi\,\|\,\pi_b)\), which explodes precisely as overlap \(\eta\) falls.</li>
+      <li><b>Retargeting caps it (Thms. 3–4).</b> Retraining at \(\nu = \pi_\lambda\) bounds the transfer factor at the price of an <i>average</i> (\(\chi^2\)) weight cost — a worst-case quantity traded for a mean. The net gain grows like \(\sqrt\rho\) as overlap falls, and the \(\lambda\)-mixture is within 2× of the best possible target law.</li>
     </ul>
+    <div class="take"><b>In one line:</b> a conditional generator spends its error budget where the logs are; a retargeted one spends it where the decision will be made.</div>
   </section>
 
   <section id="cells" class="wide">
@@ -347,7 +356,18 @@ window.MathJax = {
 
     <h3 class="col" id="video-ood">5.1 Out-of-distribution decisions</h3>
     <p class="col">Each scene has a gust stronger than any in training, seen in only 0.2% of logged scenes (\(\eta = 0.002\)). Top row: what each generator imagines for the push it chose. Bottom row: that push in the real simulator. The black line is the goal.</p>
-    <figure>
+    <figure style="gap:.9rem">
+      <div class="scene hero-scene">
+        <div class="scene-head"><b>Land the ball on the goal line</b><span>out-of-distribution gust · goal 3.4</span></div>
+        <div class="scene-grid">
+          <span></span>
+          <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO (ours)</span></div>
+          <div class="rowlab"><span>Imagined</span><span>Real</span></div>
+          <img src="static/scenes/s106.gif" width="604" height="392" alt="Top row: each generator imagines its chosen push landing the ball on the goal line. Bottom row: in the real simulator, the conditional and ADIGen pushes leave the ball short of the line; only ADIGen-PO's push lands on it.">
+          <span></span>
+          <div class="cols"><span class="miss off">miss 1.50</span><span class="miss off">miss 1.38</span><span class="miss hit">miss 0.07</span></div>
+        </div>
+      </div>
       <div class="scenes">
         <div class="scene">
           <div class="scene-head"><b>Scene 236</b><span>best possible miss 0.03</span></div>
@@ -394,7 +414,7 @@ window.MathJax = {
           </div>
         </div>
       </div>
-      <figcaption class="col"><b>Figure 6: Out-of-distribution decisions.</b> Badges show the real landing miss of each method's chosen push. In every scene all three generators imagine a hit, but only ADIGen-PO's push lands. In scenes 18 and 230, debiasing alone (ADIGen) gets partway there and retargeting closes the gap. Scenes chosen for illustration; mean regret over all 256 scenes is 0.65 / 0.34 / 0.20.</figcaption>
+      <figcaption class="col"><b>Figure 6: Every generator imagines success. Only the retargeted one achieves it.</b> Badges show the real landing miss of each method's chosen push. In every scene all three generators imagine a hit, but only ADIGen-PO's push lands. In scenes 18 and 230, debiasing alone (ADIGen) gets partway there and retargeting closes the gap. Scenes chosen for illustration; mean regret over all 256 scenes is 0.65 / 0.34 / 0.20.</figcaption>
     </figure>
 
     <h3 class="col" id="video-results">5.2 Results across overlap and dimension</h3>
@@ -428,6 +448,7 @@ window.MathJax = {
 <footer class="col">
   <span>Raphael C. Kim, Jingsen Zhu, Ramin Zabih, Michele Santacatterina · 2026</span>
   <span>Page layout inspired by the <a href="https://phyworld.github.io/">PhyWorld</a> project page.</span>
+  <span>Figure 1 photos via Wikimedia Commons: <a href="https://commons.wikimedia.org/wiki/File:Robot_arm_handles_an_assay_plate.jpg">NIAID</a> (public domain), <a href="https://commons.wikimedia.org/wiki/File:Waymo_Self-Driving_Car_(54983869212).jpg">ajay_suresh</a> (CC BY 4.0), <a href="https://commons.wikimedia.org/wiki/File:20250808_Intensive_care_unit_bed.jpg">Ismael Olea</a> (CC BY 4.0).</span>
 </footer>
 
 <script>
