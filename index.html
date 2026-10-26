@@ -326,21 +326,19 @@ window.MathJax = {
       </div>
       <figcaption class="col"><b>Figure 3: Real Cell Painting wells (VERO).</b> At high doses the three active compounds restore a dense monolayer close to mock. The biased logger thins exactly these high-dose wells. Five channels shown as RGB (nuclei, ER, actin, RNA, Golgi/membrane); central crop, first well per condition.</figcaption>
     </figure>
-    <div class="duo wide">
-      <figure>
-        <div class="etactl">
-          <span>overlap</span>
-          <input type="range" id="eta-slider" min="0" max="4" step="1" value="0" aria-label="Overlap eta of the dose-response figure">
-          <output id="eta-out">η = 0.1</output>
-        </div>
-        <div class="plate"><img id="eta-img" src="static/img/dose_eta0.1.png" width="2200" height="640" loading="lazy" alt="Dose-response curves for GS-441524, Remdesivir and Chloroquine at the overlap chosen with the slider: real wells rise sharply at high dose; at low overlap the conditional and ADIGen policies stay flat while retargeted ADIGen rises toward the real peak."></div>
-        <figcaption><b>Figure 4: Dose–response as the logs thin out (drag the slider).</b> Black: real held-out wells; shaded: the ≥ 1 µM band the logger thins to a fraction \(\eta\). At \(\eta = 0.1\) the conditional and ADIGen policies (overlapping) read the response as flat and miss the rescue, while retargeted ADIGen climbs toward the real peak. As \(\eta\) rises toward 1 the logs regain coverage and the methods converge.</figcaption>
-      </figure>
-      <figure>
-        <div class="plate"><img src="static/img/fig_cells_c32fair_rho.png" width="2080" height="2080" loading="lazy" alt="Line plots for RxRx19a against overlap: regret, generator RMSE, peak recovery and regret reduction."></div>
-        <figcaption><b>Figure 5: RxRx19a across overlap η.</b> The same sweep summarized. Rows: regret; generator RMSE globally (solid) and at \(\pi^\star\) (dotted); peak recovery (predicted / true rescue height); regret reduction from retargeting. The advantage of retargeting grows as overlap falls — the per-\(\eta\) curves on the left are the raw material of this figure.</figcaption>
-      </figure>
-    </div>
+    <figure class="wide">
+      <div class="etactl">
+        <span>overlap</span>
+        <input type="range" id="eta-slider" min="0" max="4" step="1" value="0" aria-label="Overlap eta of the dose-response figure">
+        <output id="eta-out">η = 0.1</output>
+      </div>
+      <div class="plate"><img id="eta-img" src="static/img/dose_eta0.1.png" width="2200" height="640" loading="lazy" alt="Dose-response curves for GS-441524, Remdesivir and Chloroquine at the overlap chosen with the slider: real wells rise sharply at high dose; at low overlap the conditional and ADIGen policies stay flat while retargeted ADIGen rises toward the real peak."></div>
+      <figcaption class="col"><b>Figure 4: Dose–response as the logs thin out (drag the slider).</b> Black: real held-out wells; shaded: the ≥ 1 µM band the logger thins to a fraction \(\eta\). At \(\eta = 0.1\) the conditional and ADIGen policies (overlapping) read the response as flat and miss the rescue, while retargeted ADIGen climbs toward the real peak. As \(\eta\) rises toward 1 the logs regain coverage and the methods converge.</figcaption>
+    </figure>
+    <figure class="wide">
+      <div class="plate"><img src="static/img/fig_cells_rho_wide.png" width="2640" height="660" loading="lazy" alt="Four panels against overlap for RxRx19a: regret, generator RMSE, peak recovery and regret reduction from retargeting, with bootstrap bands."></div>
+      <figcaption class="col"><b>Figure 5: RxRx19a across overlap η.</b> The sweep above summarized. Panels: regret; generator RMSE globally (solid) and at \(\pi^\star\) (dotted); peak recovery (predicted / true rescue height); regret reduction from retargeting. Retargeting helps most in the sparse-log regime (\(\eta \le 0.5\)) and costs nothing once the logs cover the high-dose band. Shading: 95% evaluation-noise bands.</figcaption>
+    </figure>
   </section>
 
   <section id="video" class="wide">
@@ -354,36 +352,28 @@ window.MathJax = {
     </figure>
 
     <h3 class="col" id="video-idood">5.2 In-distribution vs. out-of-distribution rollouts</h3>
-    <p class="col">First, the generators alone. Each is asked to roll out one fixed push, with no policy involved. <b>In-distribution</b> pushes lie inside the band the logger used. <b>Out-of-distribution</b> pushes lie 0.6–2.0 outside it (\(\eta = 0.002\), small model). Shown: all three pushes rendered in each band.</p>
-    <figure>
+    <p class="col">First, the generators alone. Each is asked to roll out one fixed push, with no policy involved. One representative case per band (\(\eta = 0.002\), small model): an <b>in-distribution</b> push inside the band the logger used, and an <b>out-of-distribution</b> push 0.6–2.0 outside it.</p>
+    <figure class="wide">
       <div class="scene">
-        <div class="scene-head"><b>In-distribution</b><span>pushes inside the logged band</span></div>
+        <div class="scene-head"><b>In-distribution</b><span>push inside the logged band</span></div>
         <div class="scene-grid" style="grid-template-columns:minmax(0,1fr)">
           <div class="cols four"><span style="color:var(--ink)">Real</span><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
           <img src="static/scenes/id032.gif" width="1033" height="258" loading="lazy" alt="In-distribution push: all three generators roll out a solid ball at the real position.">
           <div class="cols four"><span></span><span class="miss hit">0.00</span><span class="miss hit">0.03</span><span class="miss off">0.16</span></div>
-          <img src="static/scenes/id043.gif" width="1033" height="258" loading="lazy" alt="Second in-distribution push: all generators match the real rollout.">
-          <div class="cols four"><span></span><span class="miss hit">0.06</span><span class="miss hit">0.02</span><span class="miss hit">0.08</span></div>
-          <img src="static/scenes/id245.gif" width="1033" height="258" loading="lazy" alt="Third in-distribution push: all generators match the real rollout.">
-          <div class="cols four"><span></span><span class="miss hit">0.01</span><span class="miss hit">0.01</span><span class="miss hit">0.05</span></div>
         </div>
       </div>
-      <figcaption class="col"><b>Figure 7: In-distribution, every generator looks good.</b> All three produce a crisp ball that lands where the real one does (badges: landing miss at frame 30). On pushes like these, an ordinary conditional generator is as accurate as ours.</figcaption>
+      <figcaption class="col"><b>Figure 7: In-distribution, every generator looks good.</b> All three produce a crisp ball that lands where the real one does (badges: landing miss at frame 30). On pushes like these an ordinary conditional generator is as accurate as ours — in distribution, mean miss over the three rendered in-band pushes is 0.02 / 0.02 / 0.10.</figcaption>
     </figure>
-    <figure>
+    <figure class="wide">
       <div class="scene">
-        <div class="scene-head"><b>Out-of-distribution</b><span>pushes 0.6–2.0 outside the logged band</span></div>
+        <div class="scene-head"><b>Out-of-distribution</b><span>push 0.6–2.0 outside the logged band</span></div>
         <div class="scene-grid" style="grid-template-columns:minmax(0,1fr)">
           <div class="cols four"><span style="color:var(--ink)">Real</span><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
           <img src="static/scenes/ood169.gif" width="1033" height="258" loading="lazy" alt="Out-of-distribution push: the conditional generator's ball fades and lags; ADIGen and ADIGen-PO keep a solid ball near the real position.">
           <div class="cols four"><span></span><span class="miss off">0.57</span><span class="miss off">0.19</span><span class="miss off">0.16</span></div>
-          <img src="static/scenes/ood228.gif" width="1033" height="258" loading="lazy" alt="Second out-of-distribution push: the conditional generator's ball blurs; the doubly robust generators stay solid.">
-          <div class="cols four"><span></span><span class="miss off">0.65</span><span class="miss off">0.59</span><span class="miss off">0.48</span></div>
-          <img src="static/scenes/ood212.gif" width="1033" height="258" loading="lazy" alt="Third out-of-distribution push: all three generators fall short of the real position.">
-          <div class="cols four"><span></span><span class="miss off">0.63</span><span class="miss off">0.59</span><span class="miss off">0.58</span></div>
         </div>
       </div>
-      <figcaption class="col"><b>Figure 8: Out-of-distribution, the conditional generator breaks down.</b> Far from the logged pushes its ball shrinks, fades and lags behind the real one. The doubly robust generators keep a solid ball and land closer. Out of distribution, mean miss over all six rendered pushes is 0.47 (conditional), 0.33 (ADIGen) and 0.26 (ADIGen-PO). In distribution, the conditional generator is as good or better.</figcaption>
+      <figcaption class="col"><b>Figure 8: Out-of-distribution, the conditional generator breaks down.</b> Far from the logged pushes its ball shrinks, fades and lags behind the real one, while the doubly robust generators keep a solid ball and land close. Mean miss over all six rendered far-off-band pushes: 0.47 (conditional), 0.33 (ADIGen), 0.26 (ADIGen-PO).</figcaption>
     </figure>
 
     <h3 class="col" id="video-ood">5.3 Out-of-distribution decisions</h3>
