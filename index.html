@@ -95,6 +95,7 @@ figcaption b { color: var(--ink); font-weight: 600; }
 .legend i { width: 1.4rem; height: 3px; border-radius: 2px; display: inline-block; background: currentColor; }
 .m-cond { color: var(--cond); } .m-adg { color: var(--adg); } .m-rt { color: var(--rt); }
 .fig-mid { max-width: 40rem; margin-inline: auto; width: 100%; }
+.fig-big { max-width: 52rem; margin-inline: auto; width: 100%; }
 
 /* answer */
 .answer { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 1.5rem clamp(1rem, 4vw, 2rem); display: grid; gap: 1rem; }
@@ -261,9 +262,8 @@ window.MathJax = {
       <li><a href="#cells">Cell Painting (RxRx19a)</a></li>
       <li><a href="#video">Video world model (PhyWorld)</a>
         <ol>
-          <li><a href="#video-results">Results across overlap and dimension</a></li>
-          <li><a href="#video-idood">In-distribution vs. out-of-distribution rollouts</a></li>
           <li><a href="#video-ood">Out-of-distribution decisions</a></li>
+          <li><a href="#video-results">Results across overlap and dimension</a></li>
         </ol>
       </li>
     </ol>
@@ -345,38 +345,7 @@ window.MathJax = {
     <div class="col"><h2 class="sec"><span class="n">5</span>Video world model (PhyWorld)</h2></div>
     <p class="col">Outcomes are rendered videos from <a href="https://phyworld.github.io/">PhyWorld</a>, and the generator is a flow-matching DiT in VAE latent space. Each ball gets a push and a shared gust; the policy chooses a second push to land each ball on a goal. Strong gusts (\(|g| \in [0.50, 0.85]\)) lie outside the training range (\(|g| \le 0.25\)) and appear in the logs with probability \(\eta\).</p>
 
-    <h3 class="col" id="video-results">5.1 Results across overlap and dimension</h3>
-    <figure class="fig-mid">
-      <div class="plate"><img src="static/img/fig_phyworld_rho_m_30k.png" width="2080" height="2080" loading="lazy" alt="Line plots for PhyWorld: regret, model error, self-evaluation error and regret reduction against overlap and number of balls."></div>
-      <figcaption><b>Figure 6: PhyWorld at a matched training budget.</b> Left: overlap \(\eta\) (\(m = 1\)). Right: number of balls \(m\) (\(\eta = 0.005\)). At low overlap retargeting has the lowest regret, then ADIGen, then the conditional model. It also has the smallest self-evaluation error: it knows how good its own plan is.</figcaption>
-    </figure>
-
-    <h3 class="col" id="video-idood">5.2 In-distribution vs. out-of-distribution rollouts</h3>
-    <p class="col">First, the generators alone. Each is asked to roll out one fixed push, with no policy involved. One representative case per band (\(\eta = 0.002\), small model): an <b>in-distribution</b> push inside the band the logger used, and an <b>out-of-distribution</b> push 0.6–2.0 outside it.</p>
-    <figure class="wide">
-      <div class="scene">
-        <div class="scene-head"><b>In-distribution</b><span>push inside the logged band</span></div>
-        <div class="scene-grid" style="grid-template-columns:minmax(0,1fr)">
-          <div class="cols four"><span style="color:var(--ink)">Real</span><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
-          <img src="static/scenes/id032.gif" width="1033" height="258" loading="lazy" alt="In-distribution push: all three generators roll out a solid ball at the real position.">
-          <div class="cols four"><span></span><span class="miss hit">0.00</span><span class="miss hit">0.03</span><span class="miss off">0.16</span></div>
-        </div>
-      </div>
-      <figcaption class="col"><b>Figure 7: In-distribution, every generator looks good.</b> All three produce a crisp ball that lands where the real one does (badges: landing miss at frame 30). On pushes like these an ordinary conditional generator is as accurate as ours — in distribution, mean miss over the three rendered in-band pushes is 0.02 / 0.02 / 0.10.</figcaption>
-    </figure>
-    <figure class="wide">
-      <div class="scene">
-        <div class="scene-head"><b>Out-of-distribution</b><span>push 0.6–2.0 outside the logged band</span></div>
-        <div class="scene-grid" style="grid-template-columns:minmax(0,1fr)">
-          <div class="cols four"><span style="color:var(--ink)">Real</span><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">ADIGen-PO</span></div>
-          <img src="static/scenes/ood169.gif" width="1033" height="258" loading="lazy" alt="Out-of-distribution push: the conditional generator's ball fades and lags; ADIGen and ADIGen-PO keep a solid ball near the real position.">
-          <div class="cols four"><span></span><span class="miss off">0.57</span><span class="miss off">0.19</span><span class="miss off">0.16</span></div>
-        </div>
-      </div>
-      <figcaption class="col"><b>Figure 8: Out-of-distribution, the conditional generator breaks down.</b> Far from the logged pushes its ball shrinks, fades and lags behind the real one, while the doubly robust generators keep a solid ball and land close. Mean miss over all six rendered far-off-band pushes: 0.47 (conditional), 0.33 (ADIGen), 0.26 (ADIGen-PO).</figcaption>
-    </figure>
-
-    <h3 class="col" id="video-ood">5.3 Out-of-distribution decisions</h3>
+    <h3 class="col" id="video-ood">5.1 Out-of-distribution decisions</h3>
     <p class="col">Each scene has a gust stronger than any in training, seen in only 0.2% of logged scenes (\(\eta = 0.002\)). Top row: what each generator imagines for the push it chose. Bottom row: that push in the real simulator. The black line is the goal.</p>
     <figure>
       <div class="scenes">
@@ -425,7 +394,13 @@ window.MathJax = {
           </div>
         </div>
       </div>
-      <figcaption class="col"><b>Figure 9: Out-of-distribution decisions.</b> Badges show the real landing miss of each method's chosen push. In every scene all three generators imagine a hit, but only ADIGen-PO's push lands. In scenes 18 and 230, debiasing alone (ADIGen) gets partway there and retargeting closes the gap. Scenes chosen for illustration; mean regret over all 256 scenes is 0.65 / 0.34 / 0.20.</figcaption>
+      <figcaption class="col"><b>Figure 6: Out-of-distribution decisions.</b> Badges show the real landing miss of each method's chosen push. In every scene all three generators imagine a hit, but only ADIGen-PO's push lands. In scenes 18 and 230, debiasing alone (ADIGen) gets partway there and retargeting closes the gap. Scenes chosen for illustration; mean regret over all 256 scenes is 0.65 / 0.34 / 0.20.</figcaption>
+    </figure>
+
+    <h3 class="col" id="video-results">5.2 Results across overlap and dimension</h3>
+    <figure class="fig-big">
+      <div class="plate"><img src="static/img/fig_phyworld_rho_m_30k.png" width="2080" height="2080" loading="lazy" alt="Line plots for PhyWorld: regret, model error, self-evaluation error and regret reduction against overlap and number of balls."></div>
+      <figcaption><b>Figure 7: PhyWorld at a matched training budget.</b> Left: overlap \(\eta\) (\(m = 1\)). Right: number of balls \(m\) (\(\eta = 0.005\)). At low overlap retargeting has the lowest regret, then ADIGen, then the conditional model. It also has the smallest self-evaluation error: it knows how good its own plan is.</figcaption>
     </figure>
 
   </section>
