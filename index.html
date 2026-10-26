@@ -310,7 +310,7 @@ window.MathJax = {
 
   <section id="cells" class="wide">
     <div class="col"><h2 class="sec"><span class="n">4</span>Cell Painting (RxRx19a)</h2></div>
-    <p class="col">Outcomes are microscopy images of SARS-CoV-2-infected cells. The intervention is compound × dose (256 arms), and the utility is a rescue score from 0 (infected) to 1 (mock). We bias the logs by keeping only a fraction \(\eta\) of VERO wells at doses ≥ 1 µM, which is exactly where rescue happens.</p>
+    <p class="col"><b>Setup.</b> RxRx19a Cell Painting: microscopy images of SARS-CoV-2-infected VERO cells, each well treated with one of 32 compounds at one of 8 doses (256 arms). The decision is which compound and dose to give; its utility is a rescue score read from the images — 0 means the well looks infected, 1 means it looks like healthy mock cells. Rescue only happens at high dose, and that is where we bias the logs: wells at ≥ 1 µM are thinned to a fraction \(\eta\), low doses are left untouched. As \(\eta\) falls, the data says less and less about precisely the doses worth choosing.</p>
     <figure class="wide">
       <div class="cells">
         <figure><img src="static/cells/mock.jpg" width="512" height="512" loading="lazy" alt="Mock-infected VERO cells: dense monolayer."><figcaption><b>Mock</b>uninfected</figcaption></figure>
@@ -339,7 +339,7 @@ window.MathJax = {
 
   <section id="video" class="wide">
     <div class="col"><h2 class="sec"><span class="n">5</span>Video generation (PhyWorld)</h2></div>
-    <p class="col">Outcomes are rendered videos from <a href="https://phyworld.github.io/">PhyWorld</a>, and the generator is a flow-matching DiT in VAE latent space. Each ball gets a push and a shared gust; the policy chooses a second push to land each ball on a goal. Strong gusts (\(|g| \in [0.50, 0.85]\)) lie outside the training range (\(|g| \le 0.25\)) and appear in the logs with probability \(\eta\).</p>
+    <p class="col"><b>Setup.</b> A <a href="https://phyworld.github.io/">PhyWorld</a> ball receives a first push and a gust of wind; the decision is a second push, chosen so the ball lands on a goal line. Outcomes are rendered videos: each generator (conditional, ADIGen, retargeted ADIGen) is a flow-matching video DiT in the latent space of a frozen VAE, and the policy rolls out a bank of candidate pushes and picks the one it believes lands closest. The logs carry both biases of Section 1: the first push is correlated with the gust (confounding), and scenes with strong gusts (\(|g| \in [0.50, 0.85]\), beyond the training range \(|g| \le 0.25\)) enter the logs only with probability \(\eta\) (coverage) — the planner must act exactly where the data is thin.</p>
 
     <h3 class="col" id="video-ood">5.1 Out-of-distribution decisions</h3>
     <p class="col">Each scene has a gust stronger than any in training, seen in only 0.2% of logged scenes (\(\eta = 0.002\)). Top row: what each generator imagines for the push it chose. Bottom row: that push in the real simulator. The black line is the goal.</p>
