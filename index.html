@@ -202,7 +202,6 @@ window.MathJax = {
 <header class="hero col">
   <div class="venue">arXiv 2606.07399 · stat.ML · 2026</div>
   <h1>Are Good Generators Good <span class="q">Decision-Makers?</span></h1>
-  <p class="subtitle">Policy Learning for General Interventions via Retargeted Counterfactual Generation</p>
   <div class="authors">
     <span><a href="https://changon.github.io/">Raphael C. Kim</a><sup>1,2</sup></span>
     <span><a href="https://jingsenzhu.github.io/">Jingsen Zhu</a><sup>1</sup></span>
@@ -226,8 +225,23 @@ window.MathJax = {
 
   <section class="col">
     <div class="answer">
-      <h2>The Answer: <em>only if trained for the decision.</em></h2>
-      <p class="lead">A generator that looks accurate can still make bad decisions. Retargeting it toward the decisions it supports fixes this.</p>
+      <h2>The Answer: <em>yes — with ADIGen + Retargeting.</em></h2>
+      <div class="scene hero-scene">
+        <div class="scene-head"><b>Land the ball on the goal line</b><span>out-of-distribution gust · goal 3.4</span></div>
+        <div class="scene-grid">
+          <span></span>
+          <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">Retargeting (ours)</span></div>
+          <div class="rowlab"><span>Imagined</span><span>Real</span></div>
+          <img src="static/scenes/s106.gif" width="604" height="392" alt="Top row: each generator imagines its chosen push landing the ball on the goal line. Bottom row: in the real simulator, the conditional and ADIGen pushes leave the ball short of the line; only the retargeted push lands on it.">
+          <span></span>
+          <div class="cols"><span class="miss off">miss 1.50</span><span class="miss off">miss 1.38</span><span class="miss hit">miss 0.07</span></div>
+        </div>
+      </div>
+      <ul>
+        <li><b>Imagined:</b> every generator above pictures its chosen push landing on the goal line.</li>
+        <li><b>Real:</b> in the simulator, only ours lands it — miss 0.07 vs. 1.50 and 1.38.</li>
+        <li><b>Why:</b> generating realistic futures is not the same as choosing good actions, so we retarget the generator toward the decisions it has to support.</li>
+      </ul>
       <dl>
         <dt>Problem</dt>
         <dd><ul>
@@ -368,17 +382,6 @@ window.MathJax = {
     <h3 class="col" id="video-ood">5.1 Out-of-distribution decisions</h3>
     <p class="col">Out of distribution: each scene has a gust stronger than any in training, seen in only 0.2% of logged scenes (\(\eta = 0.002\)). Top row: what each generator imagines for the push it chose. Bottom row: that push in the real simulator. The black line is the goal. Over the OOD scene set, mean regret drops from <b>0.74</b> (conditional) to <b class="m-rt">0.28</b> (retargeted).</p>
     <figure style="gap:.9rem">
-      <div class="scene hero-scene">
-        <div class="scene-head"><b>Land the ball on the goal line</b><span>out-of-distribution gust · goal 3.4</span></div>
-        <div class="scene-grid">
-          <span></span>
-          <div class="cols"><span class="m-cond">Conditional</span><span class="m-adg">ADIGen</span><span class="m-rt">Retargeting (ours)</span></div>
-          <div class="rowlab"><span>Imagined</span><span>Real</span></div>
-          <img src="static/scenes/s106.gif" width="604" height="392" alt="Top row: each generator imagines its chosen push landing the ball on the goal line. Bottom row: in the real simulator, the conditional and ADIGen pushes leave the ball short of the line; only the retargeted push lands on it.">
-          <span></span>
-          <div class="cols"><span class="miss off">miss 1.50</span><span class="miss off">miss 1.38</span><span class="miss hit">miss 0.07</span></div>
-        </div>
-      </div>
       <div class="scenes">
         <div class="scene">
           <div class="scene-head"><b>Scene 236</b><span>best possible miss 0.03</span></div>
