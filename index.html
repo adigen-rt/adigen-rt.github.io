@@ -508,7 +508,7 @@ document.getElementById('copy-bib').addEventListener('click', function () {
 })();
 
 (function () {
-  fetch('https://adigen-rt.goatcounter.com/counter/TOTAL.json')
+  fetch('https://adigen-rt.goatcounter.com/counter/TOTAL.json?start=2020-01-01')  // start far in the past: all-time count, including today (default range excludes the current day)
     .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
     .then(function (d) {
       document.getElementById('visit-count').textContent = d.count;
