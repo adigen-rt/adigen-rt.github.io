@@ -471,6 +471,7 @@ window.MathJax = {
 <footer class="col">
   <span>Raphael C. Kim, Jingsen Zhu, Ramin Zabih, Michele Santacatterina · 2026</span>
   <span>Page layout inspired by the <a href="https://phyworld.github.io/">PhyWorld</a> project page.</span>
+  <span id="visit-stats" hidden><span id="visit-count"></span> visits · <a href="https://adigen-rt.goatcounter.com" rel="noopener">stats by country</a></span>
 </footer>
 
 <script>
@@ -505,6 +506,17 @@ document.getElementById('copy-bib').addEventListener('click', function () {
     if (note) note.textContent = NOTES[e];
   });
 })();
+
+(function () {
+  fetch('https://adigen-rt.goatcounter.com/counter/TOTAL.json')
+    .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+    .then(function (d) {
+      document.getElementById('visit-count').textContent = d.count;
+      document.getElementById('visit-stats').hidden = false;
+    })
+    .catch(function () {});  // counter not set up yet or blocked: footer line stays hidden
+})();
 </script>
+<script data-goatcounter="https://adigen-rt.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
